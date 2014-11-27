@@ -297,10 +297,10 @@ class DbHandler {
     /**
      * Creating new protocol
      * @param int $user_id user id
-     * @param int $role_id user's role id
+     * @param int $role_id default user's role id, could be overrided inside protocol creation request
      * @param Protocol $protocol protocol object
      */
-    public function createProtocol($user_id, $role_id, $protocol) {
+    public function createProtocol($user_id, $protocol) {
         $p = Protocol::withProtocol($protocol);
 
         $stmt = $this->conn->prepare("INSERT INTO `protocols`(`role_id`, `name`, `description`, `port`,"
@@ -308,7 +308,7 @@ class DbHandler {
             . "`privProto`, `community`, `protocol_type_id`)".
             " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
-        $stmt->bind_param("issssssssssssss", $role_id, $p->getName(), $p->getDesc(), $p->getPort(),
+        $stmt->bind_param("issssssssssssss", $p->getRole(), $p->getName(), $p->getDesc(), $p->getPort(),
             $p->getVersion(), $p->getSshArgs(), $p->getLevel(), $p->getPasswd(), $p->getLogin(),
             $p->getAuthPasswd(),  $p->getPrivPasswd(), $p->getAuthProto(), $p->getPrivProto(),
             $p->getCommunity(), $p->getType());
@@ -383,23 +383,23 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllUserProtocols($user_id) {
-        // FIXME KURVAAAAAAAAAAAAAAAAAAAAAAAAAA
-//        $stmt = $this->conn->query("SELECT p.* FROM protocols p, user_protocol up WHERE p.id = up.protocol_id AND up.user_id = ?");
-//        $stmt->bind_param("i", $user_id);
-//        $stmt->execute();
-//        $tasks = $stmt->get_result();
-//        $stmt->close();
-//        return $tasks;
+        $stmt = $this->conn->prepare("SELECT p.* FROM protocols p, user_protocol up WHERE p.id = up.protocol_id AND up.user_id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
     }
 
     /**
-     * Updating task
-     * @param String $task_id id of the task
-     * @param String $task task text
-     * @param String $status task status
+     * Updating protocol
+     * @param String $user_id
+     * @param String $protocol_id id of the protocol
+     * @param Protocol $protocol
      */
-    public function updateTask($user_id, $task_id, $task, $status) {
-        $stmt = $this->conn->prepare("UPDATE tasks t, user_tasks ut set t.task = ?, t.status = ? WHERE t.id = ? AND t.id = ut.task_id AND ut.user_id = ?");
+    // TODO udelat UPDATE v zavislosti na roli usera a user_id, updat VSECH dotcenych tabulek (user_protocol, protocols)
+    public function updateProtocol($user_id, $protocol_id, $protocol) {
+        $stmt = $this->conn->prepare("UPDATE protocols p, user_protocol up set p.protocol = ?, p.status = ? WHERE p.id = ? AND p.id = up.task_id AND up.user_id = ?");
         $stmt->bind_param("siii", $task, $status, $task_id, $user_id);
         $stmt->execute();
         $num_affected_rows = $stmt->affected_rows;

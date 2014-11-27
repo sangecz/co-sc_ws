@@ -22,9 +22,11 @@ class Protocol {
     private $privProto;
     private $community;
     private $type;
+    private $role;
 
     function __construct()
     {
+        require_once dirname(__FILE__) . '/Config.php';
         $this->authPasswd = "";
         $this->authProto = "";
         $this->community = "";
@@ -39,6 +41,7 @@ class Protocol {
         $this->sshArgs = "";
         $this->version = "";
         $this->type = "";
+        $this->role = USER_ROLE_NOBODY;
     }
 
     /**
@@ -68,6 +71,23 @@ class Protocol {
 
         return $instance;
     }
+
+    /**
+     * @return int
+     */
+    public function getRole()
+    {
+        return $this->role;
+    }
+
+    /**
+     * @param int $role
+     */
+    public function setRole($role)
+    {
+        $this->role = $role;
+    }
+
 
     /**
      * @return array

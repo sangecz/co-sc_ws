@@ -15,6 +15,7 @@ define('USER_ALREADY_EXISTED', 2);
 define('USER_ROLE_EDITOR', 1);
 define('USER_ROLE_EXECUTOR', 2);
 define('USER_ROLE_NOBODY', 3);
+define('USER_ROLE_PUBLIC', 4);
 
 ///////////////////////////////////
 define('DEFAULT_PRIVPROTO', "AES");
@@ -33,6 +34,14 @@ define('WS_CODE_BAD_VALUE', 4); // Bad JSON value: 'val' for 'parameter'.
 //define('', 5); // Required protocol is SSH. (for listing)
 define('WS_CODE_PROTOCOL_ERR', 6); // Protocol Error, see protocol->output for detailed information.
 define('WS_CODE_REMOTE_CMD_ERR', 7); // Remote command Error, see cmd->output for detailed information.
+
+define('WS_CODE_REST_ERR', 10); // common err
+define('WS_CODE_REST_LOGIN', 11); // login err
+define('WS_CODE_REST_AUTH', 12);  // authentication error
+define('WS_CODE_REST_REGISTER', 13);  // registration error
+define('WS_CODE_REST_DB', 14);  // DB error
+define('WS_CODE_REST_UPDATE', 15);  // DB error
+
 
 
 ?>

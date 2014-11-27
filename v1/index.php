@@ -1,9 +1,22 @@
 <?php
 
 require_once '../include/DbHandler.php';
+require_once '../include/Config.php';
+require_once '../include/Responder.php';
+require_once '../include/Response.php';
 require_once '../include/PassHash.php';
-require_once '../include/JSONFormatChecker.php';
+require_once '../include/JSONParser.php';
 require '.././libs/Slim/Slim.php';
+
+// TODO utridit adresarovou strukturu
+
+// TODO script RUN  =list jeden
+// TODO script CREATE
+// TODO script UPDATE
+// TODO script DEL
+// TODO script LIST
+// TODO protocol UPDATE
+// TODO protocol DEL
 
 \Slim\Slim::registerAutoloader();
 
@@ -20,7 +33,7 @@ $role_id = NULL;
 function authenticate(\Slim\Route $route) {
     // Getting request headers
     $headers = apache_request_headers();
-    $response = array();
+    $response = new Response();
     $app = \Slim\Slim::getInstance();
 
     // Verifying Authorization Header
@@ -32,9 +45,9 @@ function authenticate(\Slim\Route $route) {
         // validating api key
         if (!$db->isValidApiKey($api_key)) {
             // api key is not present in users table
-            $response["error"] = true;
-            $response["message"] = "Access Denied. Invalid Api key";
-            echoResponse(401, $response);
+            $msg = "Access Denied. Invalid Api key";
+            $response->setWs(WS_CODE_REST_AUTH,$msg,true);
+            Responder::getInstance()->echoResponse(401, $response);
             $app->stop();
         } else {
             global $user_id;
@@ -45,9 +58,9 @@ function authenticate(\Slim\Route $route) {
         }
     } else {
         // api key is missing in header
-        $response["error"] = true;
-        $response["message"] = "Api key is misssing";
-        echoResponse(400, $response);
+        $msg = "Api key is misssing";
+        $response->setWs(WS_CODE_REST_AUTH,$msg,true);
+        Responder::getInstance()->echoResponse(400, $response);
         $app->stop();
     }
 }
@@ -65,7 +78,7 @@ $app->post('/register', function() use ($app) {
             // check for required params
             verifyRequiredParams(array('name', 'email', 'password'));
 
-            $response = array();
+            $response = new Response();
 
             // reading post params
             $name = $app->request->post('name');
@@ -79,17 +92,17 @@ $app->post('/register', function() use ($app) {
             $res = $db->createUser($name, $email, $password);
 
             if ($res == USER_CREATED_SUCCESSFULLY) {
-                $response["error"] = false;
-                $response["message"] = "You are successfully registered";
+                $msg = "You are successfully registered";
+                $response->setWs(WS_CODE_OK, $msg, false);
             } else if ($res == USER_CREATE_FAILED) {
-                $response["error"] = true;
-                $response["message"] = "Oops! An error occurred while registereing";
+                $msg = "An error occurred while registereing";
+                $response->setWs(WS_CODE_REST_REGISTER, $msg, true);
             } else if ($res == USER_ALREADY_EXISTED) {
-                $response["error"] = true;
-                $response["message"] = "Sorry, this email already existed";
+                $msg = "Sorry, this email already existed";
+                $response->setWs(WS_CODE_REST_REGISTER, $msg, true);
             }
             // echo json response
-            echoResponse(201, $response);
+            Responder::echoResponse(201, $response);
         });
 
 /**
@@ -105,7 +118,7 @@ $app->post('/login', function() use ($app) {
             // reading post params
             $email = $app->request()->post('email');
             $password = $app->request()->post('password');
-            $response = array();
+            $response = new Response();
 
             $db = new DbHandler();
             // check for correct email and password
@@ -115,26 +128,28 @@ $app->post('/login', function() use ($app) {
 
                 if ($user == NULL) {
                     // unknown error occurred
-                    $response['error'] = true;
-                    $response['message'] = "An error occurred. Please try again";
+                    $msg = "An error occurred. Please try again";
+                    $response->setWs(WS_CODE_REST_LOGIN, $msg, true);
                 } else if ($user['role_id'] == USER_ROLE_NOBODY){
-                    $response['error'] = true;
-                    $response['message'] = "Role hasn't been assigned. Contact DB administrator.";
+                    $msg = "Role hasn't been assigned. Contact DB administrator.";
+                    $response->setWs(WS_CODE_REST_LOGIN, $msg, true);
                 } else {
-                    $response["error"] = false;
-                    $response['name'] = $user['name'];
-                    $response['email'] = $user['email'];
-                    $response['apiKey'] = $user['api_key'];
-                    $response['createdAt'] = $user['created_at'];
-                    $response['role_id'] = $user['role_id'];
+                    $data = array();
+                    $data['name'] = $user['name'];
+                    $data['email'] = $user['email'];
+                    $data['apiKey'] = $user['api_key'];
+                    $data['createdAt'] = $user['created_at'];
+                    $data['role_id'] = $user['role_id'];
+                    $response->setData($data);
+                    $response->setWs(WS_CODE_OK, "Logged in correctly.", false);
                 }
             } else {
                 // user credentials are wrong
-                $response['error'] = true;
-                $response['message'] = 'Login failed. Incorrect credentials';
+                $msg = 'Login failed. Incorrect credentials';
+                $response->setWs(WS_CODE_REST_LOGIN, $msg, true);
             }
 
-            echoResponse(200, $response);
+            Responder::echoResponse(200, $response);
         });
 
 /*
@@ -142,51 +157,24 @@ $app->post('/login', function() use ($app) {
  */
 
 /**
- * Listing all tasks of particual user
+ * Listing all protocols of particual user
  * method GET
- * url /tasks          
- */
-$app->get('/tasks', 'authenticate', function() {
-            global $user_id;
-            $response = array();
-            $db = new DbHandler();
-
-            // fetching all user tasks
-            $result = $db->getAllUserTasks($user_id);
-
-            $response["error"] = false;
-            $response["tasks"] = array();
-
-            // looping through result and preparing tasks array
-            while ($task = $result->fetch_assoc()) {
-                $tmp = array();
-                $tmp["id"] = $task["id"];
-                $tmp["task"] = $task["task"];
-                $tmp["status"] = $task["status"];
-                $tmp["createdAt"] = $task["created_at"];
-                array_push($response["tasks"], $tmp);
-            }
-
-            echoResponse(200, $response);
-        });
-
-/**
- * Listing all tasks of particual user
- * method GET
- * url /tasks
+ * url /protocols
  */
 $app->get('/protocols', 'authenticate', function() {
     global $user_id;
-    $response = array();
     $db = new DbHandler();
 
-    // fetching all user tasks
+    // fetching all user protocols
     $result = $db->getAllUserProtocols($user_id);
 
-    $response["error"] = false;
-    $response["protocols"] = array();
+    $response = new Response();
+    $msg = "Protocols fetched correctly.";
+    $response->setWs(WS_CODE_OK, $msg, false);
+    $data = array();
+    $data["protocols"] = array();
 
-     //looping through result and preparing tasks array
+     //looping through result and preparing protocols array
     if($result != NULL) {
         while ($protocol = $result->fetch_assoc()) {
             $tmp = array();
@@ -217,16 +205,19 @@ $app->get('/protocols', 'authenticate', function() {
                 $tmp['sshAttr']['auth']['login'] = $protocol['login'];
                 $tmp['sshAttr']['auth']['passwd'] = $protocol['passwd'];
             }
-            array_push($response["tasks"], $tmp);
+            array_push($data["protocols"], $tmp);
         }
-    } else {
 
-        $response["error"] = true;
+        $response->setData($data);
+    } else {
+        $msg = "Could not get protocols from db.";
+        $response->setWs(WS_CODE_REST_DB, $msg, true);
     }
 
-    echoResponse(200, $response);
+    Responder::echoResponse(200, $response);
 });
 
+// TODO prototyp pro RUN script
 /**
  * Listing single task of particual user
  * method GET
@@ -255,36 +246,6 @@ $app->get('/tasks/:id', 'authenticate', function($task_id) {
             }
         });
 
-/**
- * Creating new task in db
- * method POST
- * params - name
- * url - /tasks/
- */
-$app->post('/tasks', 'authenticate', function() use ($app) {
-            // check for required params
-            verifyRequiredParams(array('task'));
-
-            $response = array();
-            $task = $app->request->post('task');
-
-            global $user_id;
-            $db = new DbHandler();
-
-            // creating new task
-            $task_id = $db->createTask($user_id, $task);
-
-            if ($task_id != NULL) {
-                $response["error"] = false;
-                $response["message"] = "Task created successfully";
-                $response["task_id"] = $task_id;
-                echoResponse(201, $response);
-            } else {
-                $response["error"] = true;
-                $response["message"] = "Failed to create task. Please try again";
-                echoResponse(200, $response);
-            }
-        });
 
 //$app->post('/scripts', 'authenticate', function() use ($app) {
 //    // check for required params
@@ -312,83 +273,65 @@ $app->post('/tasks', 'authenticate', function() use ($app) {
 //});
 
 
-
-/////////////////////////////////////////////////////////////////////////
 $app->post('/protocols', 'authenticate', function() use ($app) {
     // check for required params
     verifyRequiredParams(array('protocol'));
-
-    $response = array();
     $protocolJSON = $app->request->post('protocol');
 
-    $protocol = json_decode($protocolJSON);
-    if($protocol == NULL) {
-        $response["error"] = true;
-        $response["message"] = "Bad JSON syntax.";
-        echoResponse(400, $response);
+    $protocolObj = parseProtocol($protocolJSON);
+
+    global $user_id;
+    $db = new DbHandler();
+
+    $response = new Response();
+    // creating new protocol
+    $protocol_id = $db->createProtocol($user_id, $protocolObj);
+
+    if ($protocol_id != NULL) {
+        $msg = "Protocol created successfully";
+        $data = array();
+        $data["script_id"] = $protocol_id;
+        $response->setData($data);
+        $response->setWs(WS_CODE_OK, $msg, false);
+        Responder::echoResponse(201, $response);
     } else {
-
-        $checker = new JSONFormatChecker();
-        $checker->checkProtocolMandatory($protocol);
-        $checker->checkProtocolCreateOpt($protocol);
-        $protocol_obj = $checker->getProtocol();
-
-        global $user_id;
-        global $role_id;
-        $db = new DbHandler();
-
-
-//    // creating new protocol
-        $protocol_id = $db->createProtocol($user_id, $role_id, $protocol_obj);
-
-        if ($protocol_id != NULL) {
-            $response["error"] = false;
-            $response["message"] = "Protocol created successfully";
-            $response["script_id"] = $protocol_id;
-            echoResponse(201, $response);
-        } else {
-            $response["error"] = true;
-            $response["message"] = "Failed to create protocol. Please try again";
-            echoResponse(200, $response);
-        }
+        $msg = "Failed to create protocol. Please try again";
+        $response->setWs(WS_CODE_REST_DB, $msg, true);
+        Responder::echoResponse(200, $response);
     }
+
 });
 
-/////////////////////////////////////////////////////////////////////////
-
-
-
-
-
 /**
- * Updating existing task
+ * Updating existing protocol
  * method PUT
- * params task, status
- * url - /tasks/:id
+ * params protocol, status
+ * url - /protocols/:id
  */
-$app->put('/tasks/:id', 'authenticate', function($task_id) use($app) {
+// TODO prototyp update protocol/script
+$app->put('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
             // check for required params
-            verifyRequiredParams(array('task', 'status'));
+            verifyRequiredParams(array('protocol'));
 
             global $user_id;            
-            $task = $app->request->put('task');
-            $status = $app->request->put('status');
+            $protocol = $app->request->put('protocol');
+            $protocolObj = parseProtocol($protocol);
 
             $db = new DbHandler();
-            $response = array();
+            $response = new Response();
 
-            // updating task
-            $result = $db->updateTask($user_id, $task_id, $task, $status);
+            // updating protocol
+            $result = $db->updateProtocol($user_id, $protocol_id, $protocolObj);
             if ($result) {
-                // task updated successfully
-                $response["error"] = false;
-                $response["message"] = "Task updated successfully";
+                // protocol updated successfully
+                $msg = "Protocol updated successfully";
+                $response->setWs(WS_CODE_OK, $msg, false);
             } else {
-                // task failed to update
-                $response["error"] = true;
-                $response["message"] = "Task failed to update. Please try again!";
+                // protocol failed to update
+                $msg = "Protocol failed to update. Please try again!";
+                $response->setWs(WS_CODE_REST_UPDATE, $msg, false);
             }
-            echoResponse(200, $response);
+            Responder::echoResponse(200, $response);
         });
 
 /**
@@ -396,6 +339,7 @@ $app->put('/tasks/:id', 'authenticate', function($task_id) use($app) {
  * method DELETE
  * url /tasks
  */
+// TODO prototyp delete protocol/script
 $app->delete('/tasks/:id', 'authenticate', function($task_id) use($app) {
             global $user_id;
 
@@ -416,6 +360,7 @@ $app->delete('/tasks/:id', 'authenticate', function($task_id) use($app) {
 
 /**
  * Verifying required params posted or not
+ * @param string $required_fields parameters
  */
 function verifyRequiredParams($required_fields) {
     $error = false;
@@ -435,13 +380,16 @@ function verifyRequiredParams($required_fields) {
     }
 
     if ($error) {
+        $app = \Slim\Slim::getInstance();
         // Required field(s) are missing or empty
         // echo error json and stop the app
-        $response = array();
-        $app = \Slim\Slim::getInstance();
-        $response["error"] = true;
-        $response["message"] = 'Required field(s) ' . substr($error_fields, 0, -2) . ' is missing or empty';
-        echoResponse(400, $response);
+        $response = new Response();
+
+        $msg = "Required field(s) '" . substr($error_fields, 0, -2) . "' is missing or empty";
+        $response->setWs(WS_CODE_REQUIRED, $msg, true);
+
+        Responder::echoResponse(400, $response);
+
         $app->stop();
     }
 }
@@ -452,39 +400,34 @@ function verifyRequiredParams($required_fields) {
 function validateEmail($email) {
     $app = \Slim\Slim::getInstance();
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $response["error"] = true;
-        $response["message"] = 'Email address is not valid';
-        echoResponse(400, $response);
+        $response = new Response();
+        $msg = 'Email address is not valid';
+        $response->setWs(WS_CODE_REST_REGISTER, $msg, true);
+        Responder::getInstance()->echoResponse(400, $response);
         $app->stop();
     }
 }
 
 /**
- * Echoing json response to client
- * @param String $status_code Http response code
- * @param Int $response Json response
+ * Parses and checks values of provided protocol
+ * @param string $protocolJSON JSON string
+ * @return Protocol
  */
-function echoResponse($status_code, $response) {
-    $app = \Slim\Slim::getInstance();
-    // Http response code
-    $app->status($status_code);
+function parseProtocol($protocolJSON) {
+    $protocol = json_decode($protocolJSON);
 
-    // setting response content type to json
-    $app->contentType('application/json');
+    if($protocol == NULL) {
+        $response = new Response();
+        $msg = "Bad JSON syntax.";
+        $response->setWs(WS_CODE_JSON_SYNTAX, $msg, true);
+        Responder::echoResponse(400, $response);
+    }
 
-    echo json_encode($response);
-}
+    $parser = new JSONFormatChecker();
+    $parser->checkProtocolMandatory($protocol);
+    $parser->checkProtocolOpt($protocol);
 
-function prepareExit($cause, $wsCode) {
-    $app = \Slim\Slim::getInstance();
-
-    $response['ws']['httpCode'] = 400;
-    $response['ws']['statusCode'] = $wsCode;
-    $response['ws']['message'] = "Bad Request: " . $cause;
-
-    echoResponse(400, $response);
-
-    $app->stop();
+    return $parser->getProtocol();
 }
 
 $app->run();
