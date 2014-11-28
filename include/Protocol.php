@@ -73,7 +73,7 @@ class Protocol {
     }
 
     /**
-     * @return int
+     * @return int ps_role_id
      */
     public function getRole()
     {
@@ -81,7 +81,7 @@ class Protocol {
     }
 
     /**
-     * @param int $role
+     * @param int $role ps_role_id
      */
     public function setRole($role)
     {

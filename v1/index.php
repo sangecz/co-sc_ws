@@ -24,7 +24,7 @@ $app = new \Slim\Slim();
 
 // User id from db - Global Variable
 $user_id = NULL;
-$role_id = NULL;
+$user_role_id = NULL;
 
 /**
  * Adding Middle Layer to authenticate every request
@@ -51,10 +51,10 @@ function authenticate(\Slim\Route $route) {
             $app->stop();
         } else {
             global $user_id;
-            global $role_id;
+            global $user_role_id;
             // get user primary key id
             $user_id = $db->getUserId($api_key);
-            $role_id = $db->getRoleId($api_key);
+            $user_role_id = $db->getUserRoleId($api_key);
         }
     } else {
         // api key is missing in header
@@ -130,7 +130,7 @@ $app->post('/login', function() use ($app) {
                     // unknown error occurred
                     $msg = "An error occurred. Please try again";
                     $response->setWs(WS_CODE_REST_LOGIN, $msg, true);
-                } else if ($user['role_id'] == USER_ROLE_NOBODY){
+                } else if ($user['user_role_id'] == USER_ROLE_NOBODY){
                     $msg = "Role hasn't been assigned. Contact DB administrator.";
                     $response->setWs(WS_CODE_REST_LOGIN, $msg, true);
                 } else {
@@ -139,7 +139,7 @@ $app->post('/login', function() use ($app) {
                     $data['email'] = $user['email'];
                     $data['apiKey'] = $user['api_key'];
                     $data['createdAt'] = $user['created_at'];
-                    $data['role_id'] = $user['role_id'];
+                    $data['user_role_id'] = $user['user_role_id'];
                     $response->setData($data);
                     $response->setWs(WS_CODE_OK, "Logged in correctly.", false);
                 }
@@ -166,6 +166,7 @@ $app->get('/protocols', 'authenticate', function() {
     $db = new DbHandler();
 
     // fetching all user protocols
+    // TODO access controll
     $result = $db->getAllUserProtocols($user_id);
 
     $response = new Response();
@@ -181,7 +182,7 @@ $app->get('/protocols', 'authenticate', function() {
             $tmp["id"] = $protocol["id"];
             $tmp["name"] = $protocol["name"];
             $tmp["description"] = $protocol["description"];
-            $tmp["roleId"] = $protocol["role_id"];
+            $tmp["roleId"] = $protocol["ps_role_id"];
             $tmp["type"] = $protocol["protocol_type_id"];
             $tmp["createdAt"] = $protocol["created_at"];
             if($tmp["type"] == SNMP_STR) {

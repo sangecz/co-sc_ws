@@ -159,14 +159,14 @@ class JSONFormatChecker {
 
     /**
      * @param $protocol input protocol
-     * @return int user role for protocol
+     * @return int ps_role for protocol
      */
     private function checkRole($protocol) {
         if(array_key_exists("roleId", $protocol)){
-            $roleArr = array(USER_ROLE_EDITOR, USER_ROLE_EXECUTOR, USER_ROLE_NOBODY, USER_ROLE_PUBLIC);
-            $roleId = $protocol->role_id;
+            $roleArr = array(USER_ROLE_EDITOR, USER_ROLE_EXECUTOR, USER_ROLE_NOBODY, USER_ROLE_ADMIN);
+            $roleId = $protocol->ps_role_id;
             if(!is_int($roleId) || in_array($roleId, $roleArr)) {
-                $roles = USER_ROLE_EDITOR.", ".USER_ROLE_EXECUTOR.", ".USER_ROLE_NOBODY.", ".USER_ROLE_PUBLIC;
+                $roles = USER_ROLE_EDITOR.", ".USER_ROLE_EXECUTOR.", ".USER_ROLE_NOBODY.", ".USER_ROLE_ADMIN;
                 $msg = "Bad JSON value: '" . $roleId . "' for 'roleId' parameter, not in (".$roles.").";
                 $this->printResponse(WS_CODE_BAD_VALUE, $msg);
             } else {

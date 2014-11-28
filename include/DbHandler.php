@@ -29,19 +29,17 @@ class DbHandler {
      */
     public function createUser($name, $email, $password) {
         require_once 'PassHash.php';
-        $response = array();
 
         // First check if user already existed in db
         if (!$this->isUserExists($email)) {
+            // Generating API key
+            $api_key = $this->generateApiKey();
             // Generating password hash
             $password_hash = PassHash::hash($password);
 
-            // Generating API key
-            $api_key = $this->generateApiKey();
-
             // insert query
-            $stmt = $this->conn->prepare("INSERT INTO users(name, email, password_hash, api_key, status, role_id) "
-                        ." values(?, ?, ?, ?, 1, ".USER_ROLE_NOBODY.")");
+            $stmt = $this->conn->prepare("INSERT INTO users(name, email, password_hash, api_key, user_role_id) "
+                        ." values(?, ?, ?, ?, ".USER_ROLE_NOBODY.")");
             $stmt->bind_param("ssss", $name, $email, $password_hash, $api_key);
 
             $result = $stmt->execute();
@@ -60,8 +58,6 @@ class DbHandler {
             // User with same email already existed in the db
             return USER_ALREADY_EXISTED;
         }
-
-        return $response;
     }
 
     /**
@@ -125,19 +121,18 @@ class DbHandler {
      * @param String $email User email id
      */
     public function getUserByEmail($email) {
-        $stmt = $this->conn->prepare("SELECT name, email, api_key, status, created_at, role_id FROM users WHERE email = ?");
+        $stmt = $this->conn->prepare("SELECT name, email, api_key, created_at, user_role_id FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         if ($stmt->execute()) {
             // $user = $stmt->get_result()->fetch_assoc();
-            $stmt->bind_result($name, $email, $api_key, $status, $created_at, $role_id);
+            $stmt->bind_result($name, $email, $api_key, $status, $created_at, $user_role_id);
             $stmt->fetch();
             $user = array();
             $user["name"] = $name;
             $user["email"] = $email;
             $user["api_key"] = $api_key;
-            $user["status"] = $status;
             $user["created_at"] = $created_at;
-            $user["role_id"] = $role_id;
+            $user["user_role_id"] = $user_role_id;
             $stmt->close();
             return $user;
         } else {
@@ -184,37 +179,37 @@ class DbHandler {
      * Fetching user role id by api key
      * @param String $api_key user api key
      */
-    public function getRoleId($api_key) {
-        $stmt = $this->conn->prepare("SELECT role_id FROM users WHERE api_key = ?");
+    public function getUserRoleId($api_key) {
+        $stmt = $this->conn->prepare("SELECT user_role_id FROM users WHERE api_key = ?");
         $stmt->bind_param("s", $api_key);
         if ($stmt->execute()) {
-            $stmt->bind_result($role_id);
+            $stmt->bind_result($user_role_id);
             $stmt->fetch();
             // $user_id = $stmt->get_result()->fetch_assoc();
             $stmt->close();
-            return $role_id;
+            return $user_role_id;
         } else {
             return NULL;
         }
     }
 
-    /**
-     * Fetching user role name by role_id
-     * @param int $role_id user's role
-     */
-    public function getRoleName($role_id) {
-        $stmt = $this->conn->prepare("SELECT role_name FROM roles WHERE id = ?");
-        $stmt->bind_param("i", $role_id);
-        if ($stmt->execute()) {
-            $stmt->bind_result($role_name);
-            $stmt->fetch();
-            // $user_id = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-            return $role_name;
-        } else {
-            return NULL;
-        }
-    }
+//    /**
+//     * Fetching user role name by role_id
+//     * @param int $role_id user's role
+//     */
+//    public function getUserRoleName($user_role_id) {
+//        $stmt = $this->conn->prepare("SELECT role_name FROM user_roles WHERE id = ?");
+//        $stmt->bind_param("i", $user_role_id);
+//        if ($stmt->execute()) {
+//            $stmt->bind_result($user_role_name);
+//            $stmt->fetch();
+//            // $user_id = $stmt->get_result()->fetch_assoc();
+//            $stmt->close();
+//            return $user_role_name;
+//        } else {
+//            return NULL;
+//        }
+//    }
 
     /**
      * Validating user api key
@@ -297,13 +292,13 @@ class DbHandler {
     /**
      * Creating new protocol
      * @param int $user_id user id
-     * @param int $role_id default user's role id, could be overrided inside protocol creation request
+     * @param int $role_id default user_role id, could be overrided inside protocol creation request
      * @param Protocol $protocol protocol object
      */
     public function createProtocol($user_id, $protocol) {
         $p = Protocol::withProtocol($protocol);
 
-        $stmt = $this->conn->prepare("INSERT INTO `protocols`(`role_id`, `name`, `description`, `port`,"
+        $stmt = $this->conn->prepare("INSERT INTO `protocols`(`ps_role_id`, `name`, `description`, `port`,"
             ." `version`,`sshArgs`, `level`, `passwd`, `login`, `authPasswd`, `privPasswd`, `authProto`,"
             . "`privProto`, `community`, `protocol_type_id`)".
             " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");

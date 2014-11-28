@@ -15,7 +15,9 @@ define('USER_ALREADY_EXISTED', 2);
 define('USER_ROLE_EDITOR', 1);
 define('USER_ROLE_EXECUTOR', 2);
 define('USER_ROLE_NOBODY', 3);
-define('USER_ROLE_PUBLIC', 4);
+define('USER_ROLE_ADMIN', 4);
+define('PS_ROLE_PUBLIC', 1);
+define('PS_ROLE_PRIVATE', 2);
 
 ///////////////////////////////////
 define('DEFAULT_PRIVPROTO', "AES");
