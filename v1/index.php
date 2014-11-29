@@ -1,22 +1,22 @@
 <?php
 
-require_once '../include/DbHandler.php';
+
+/**
+ * This file greatly extends tutorial mentioned below
+ *
+ * @author Petr Marek, Petr Marek
+ * @link URL Tutorial link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
+ */
+
+require_once '../include/db/DbHandler.php';
 require_once '../include/Config.php';
-require_once '../include/Responder.php';
-require_once '../include/Response.php';
-require_once '../include/PassHash.php';
-require_once '../include/JSONParser.php';
+require_once '../include/resp/Responder.php';
+require_once '../include/resp/Response.php';
+require_once '../include/db/PassHash.php';
+require_once '../include/parsers/JSONRequestParser.php';
 require '.././libs/Slim/Slim.php';
 
 // TODO utridit adresarovou strukturu
-
-// TODO script RUN  =list jeden
-// TODO script CREATE
-// TODO script UPDATE
-// TODO script DEL
-// TODO script LIST
-// TODO protocol UPDATE
-// TODO protocol DEL
 
 \Slim\Slim::registerAutoloader();
 
@@ -156,8 +156,12 @@ $app->post('/login', function() use ($app) {
  * ------------------------ METHODS WITH AUTHENTICATION ------------------------
  */
 
+/*
+ * ---------------------------- LIST METHODS: GET-------------------------------
+ */
+
 /**
- * Listing all protocols of particual user
+ * Listing all public and user's protocols
  * method GET
  * url /protocols
  */
@@ -165,9 +169,14 @@ $app->get('/protocols', 'authenticate', function() {
     global $user_id;
     $db = new DbHandler();
 
-    // fetching all user protocols
-    // TODO access controll
-    $result = $db->getAllUserProtocols($user_id);
+    // fetching protocols
+    $result = NULL;
+    if ($user_id == USER_ROLE_EXECUTOR || USER_ROLE_EDITOR) {
+        $result = $db->getAllUserPublicProtocols($user_id);
+    }
+    if ($user_id == USER_ROLE_ADMIN) {
+        $result = $db->getAllProtocols();
+    }
 
     $response = new Response();
     $msg = "Protocols fetched correctly.";
@@ -182,9 +191,9 @@ $app->get('/protocols', 'authenticate', function() {
             $tmp["id"] = $protocol["id"];
             $tmp["name"] = $protocol["name"];
             $tmp["description"] = $protocol["description"];
-            $tmp["roleId"] = $protocol["ps_role_id"];
+            $tmp["ps_role_id"] = $protocol["ps_role_id"];
             $tmp["type"] = $protocol["protocol_type_id"];
-            $tmp["createdAt"] = $protocol["created_at"];
+            $tmp["created_at"] = $protocol["created_at"];
             if($tmp["type"] == SNMP_STR) {
                 $tmp['snmpAttr'] = array();
                 $tmp['snmpAttr']['port'] = $protocol['port'];
@@ -218,68 +227,115 @@ $app->get('/protocols', 'authenticate', function() {
     Responder::echoResponse(200, $response);
 });
 
-// TODO prototyp pro RUN script
 /**
- * Listing single task of particual user
+ * Listing all public and user's scripts
  * method GET
- * url /tasks/:id
- * Will return 404 if the task doesn't belongs to user
+ * url /scripts
  */
-$app->get('/tasks/:id', 'authenticate', function($task_id) {
-            global $user_id;
-            $response = array();
-            $db = new DbHandler();
+$app->get('/scripts', 'authenticate', function() {
+    global $user_id;
+    $db = new DbHandler();
 
-            // fetch task
-            $result = $db->getTask($task_id, $user_id);
+    // fetching scripts
+    $result = NULL;
+    if ($user_id == USER_ROLE_EXECUTOR || USER_ROLE_EDITOR) {
+        $result = $db->getAllUserPublicScripts($user_id);
+    }
+    if ($user_id == USER_ROLE_ADMIN) {
+        $result = $db->getAllScripts();
+    }
 
-            if ($result != NULL) {
-                $response["error"] = false;
-                $response["id"] = $result["id"];
-                $response["task"] = $result["task"];
-                $response["status"] = $result["status"];
-                $response["createdAt"] = $result["created_at"];
-                echoResponse(200, $response);
-            } else {
-                $response["error"] = true;
-                $response["message"] = "The requested resource doesn't exists";
-                echoResponse(404, $response);
-            }
+    $response = new Response();
+    $msg = "Scripts fetched correctly.";
+    $response->setWs(WS_CODE_OK, $msg, false);
+    $data = array();
+    $data["scripts"] = array();
+
+    //looping through result and preparing scripts array
+    if($result != NULL) {
+        while ($script = $result->fetch_assoc()) {
+            $tmp = array();
+            $tmp["id"] = $script["id"];
+            $tmp["ps_role_id"] = $script["ps_role_id"];
+            $tmp["name"] = $script["name"];
+            $tmp["description"] = $script["description"];
+            $tmp["address"] = $script["address"];
+            $tmp["content"] = $script["content"];
+            $tmp["protocol_id"] = $script["protocol_id"];
+            $tmp["created_at"] = $script["created_at"];
+            array_push($data["scripts"], $tmp);
+        }
+
+        $response->setData($data);
+    } else {
+        $msg = "Could not get scripts from db.";
+        $response->setWs(WS_CODE_REST_DB, $msg, true);
+    }
+
+    Responder::echoResponse(200, $response);
+});
+
+/**
+ * Listing single script of particual user
+ * method GET
+ * url /scripts/:id
+ * Will return 404 if the script doesn't belongs to user
+ */
+$app->get('/scripts/:id', 'authenticate', function($script_id) {
+    global $user_id;
+    $response = array();
+    $db = new DbHandler();
+
+    $response = new Response();
+    // fetch script
+    $result = $db->getScript($script_id, $user_id);
+
+
+    if($result == NULL) {
+        $msg = "The requested resource doesn't exists";
+        $response->setWs(WS_CODE_REST_DB, $msg, true);
+        Responder::echoResponse(404, $response);
+    }
+
+    $msg = "Script successfully run.";
+    $response->setWs(WS_CODE_OK, $msg,false);
+    $data = array();
+    $data['script'] = $result;
+
+    $result = $db->getProtocol($data['script']['protocol_id']);
+    if($result == NULL) {
+        $msg = "The requested resource doesn't exists";
+        $response->setWs(WS_CODE_REST_DB, $msg, true);
+        Responder::echoResponse(404, $response);
+    }
+
+    $data['protocol'] = $result;
+
+    // TODO trida ScriptRunner
+
+    $response->setData($data);
+    Responder::echoResponse(200, $response);
+
         });
 
+/*
+ * ---------------------------- CREATE METHODS: POST------------------------------
+ */
 
-//$app->post('/scripts', 'authenticate', function() use ($app) {
-//    // check for required params
-//    verifyRequiredParams(array('script'));
-//
-//    $response = array();
-//    $script = $app->request->post('script');
-//
-//    global $user_id;
-//    $db = new DbHandler();
-//
-//    // creating new script
-//    $script_id = $db->createScript($user_id, $script);
-//
-//    if ($script_id != NULL) {
-//        $response["error"] = false;
-//        $response["message"] = "Script created successfully";
-//        $response["script_id"] = $script_id;
-//        echoRespnse(201, $response);
-//    } else {
-//        $response["error"] = true;
-//        $response["message"] = "Failed to create script. Please try again";
-//        echoRespnse(200, $response);
-//    }
-//});
-
-
+/**
+ * Creates new protocol
+ * method POST
+ * url /protocols
+ */
 $app->post('/protocols', 'authenticate', function() use ($app) {
+    global $user_role_id;
+    checkHasRightCUD($user_role_id);
+
     // check for required params
     verifyRequiredParams(array('protocol'));
     $protocolJSON = $app->request->post('protocol');
 
-    $protocolObj = parseProtocol($protocolJSON);
+    $protocolObj = processProtocol($protocolJSON);
 
     global $user_id;
     $db = new DbHandler();
@@ -304,26 +360,75 @@ $app->post('/protocols', 'authenticate', function() use ($app) {
 });
 
 /**
+ * Creates new script
+ * method POST
+ * url /scripts
+ */
+$app->post('/scripts', 'authenticate', function() use ($app) {
+    global $user_role_id;
+    checkHasRightCUD($user_role_id);
+
+    // check for required params
+    verifyRequiredParams(array('script'));
+
+    $scriptJSON = $app->request->post('script');
+    $protocolObj = processScript($scriptJSON);
+
+    global $user_id;
+    $db = new DbHandler();
+    $response = new Response();
+
+    // creating new script
+    $script_id = $db->createScript($user_id, $protocolObj);
+
+    if ($script_id != NULL) {
+        if($script_id == WS_CODE_REST_AUTH){
+           handleAuthError();
+        }
+        $msg = "Script created successfully";
+        $data = array();
+        $data["script_id"] = $script_id;
+        $response->setData($data);
+        $response->setWs(WS_CODE_OK, $msg, false);
+        Responder::echoResponse(201, $response);
+    } else {
+        $msg = "Failed to create script. Please try again";
+        $response->setWs(WS_CODE_REST_DB, $msg, true);
+        Responder::echoResponse(200, $response);
+    }
+});
+
+/*
+ * ---------------------------- UPDATE METHODS: PUT -----------------------------
+ */
+
+/**
  * Updating existing protocol
  * method PUT
- * params protocol, status
+ * params protocol
  * url - /protocols/:id
  */
-// TODO prototyp update protocol/script
 $app->put('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
+            global $user_role_id;
+            checkHasRightCUD($user_role_id);
+
             // check for required params
             verifyRequiredParams(array('protocol'));
 
             global $user_id;            
             $protocol = $app->request->put('protocol');
-            $protocolObj = parseProtocol($protocol);
+            $protocolObj = processProtocol($protocol);
 
             $db = new DbHandler();
             $response = new Response();
 
             // updating protocol
-            $result = $db->updateProtocol($user_id, $protocol_id, $protocolObj);
+            $result = $db->updateProtocol($user_id, $user_role_id, $protocol_id, $protocolObj);
+
             if ($result) {
+                if($result == WS_CODE_REST_AUTH){
+                    handleAuthError();
+                }
                 // protocol updated successfully
                 $msg = "Protocol updated successfully";
                 $response->setWs(WS_CODE_OK, $msg, false);
@@ -336,28 +441,111 @@ $app->put('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
         });
 
 /**
- * Deleting task. Users can delete only their tasks
- * method DELETE
- * url /tasks
+ * Updating existing script
+ * method PUT
+ * params script
+ * url - /scripts/:id
  */
-// TODO prototyp delete protocol/script
-$app->delete('/tasks/:id', 'authenticate', function($task_id) use($app) {
+$app->put('/scripts/:id', 'authenticate', function($script_id) use($app) {
+    global $user_role_id;
+    checkHasRightCUD($user_role_id);
+
+    // check for required params
+    verifyRequiredParams(array('script'));
+
+    global $user_id;
+    $script = $app->request->put('script');
+    $scriptObj = processScript($script);
+
+    $db = new DbHandler();
+    $response = new Response();
+
+    // updating script
+    $result = $db->updateScript($user_id, $user_role_id, $script_id, $scriptObj);
+
+    if ($result) {
+        if($result == WS_CODE_REST_AUTH){
+            handleAuthError();
+        }
+        // script updated successfully
+        $msg = "Script updated successfully";
+        $response->setWs(WS_CODE_OK, $msg, false);
+    } else {
+        // script failed to update
+        $msg = "Script failed to update. Please try again!";
+        $response->setWs(WS_CODE_REST_UPDATE, $msg, false);
+    }
+    Responder::echoResponse(200, $response);
+});
+/*
+ * ---------------------------- DELETE METHODS: DELETE ------------------------------
+ */
+
+/**
+ * Deleting protocol. Users can delete public and theirs protocols
+ * method DELETE
+ * url /protocols
+ */
+$app->delete('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
             global $user_id;
+            global $user_role_id;
+
+            checkHasRightCUD($user_role_id);
 
             $db = new DbHandler();
-            $response = array();
-            $result = $db->deleteTask($user_id, $task_id);
+            $response = new Response();
+
+            $result = $db->deleteProtocol($user_id, $user_role_id, $protocol_id);
+
             if ($result) {
-                // task deleted successfully
-                $response["error"] = false;
-                $response["message"] = "Task deleted succesfully";
+                if($result == WS_CODE_REST_AUTH){
+                    handleAuthError();
+                }
+                // protocol deleted successfully
+                $msg = "Protocol deleted succesfully";
+                $response->setWs(WS_CODE_OK, $msg, false);
             } else {
-                // task failed to delete
-                $response["error"] = true;
-                $response["message"] = "Task failed to delete. Please try again!";
+                // protocol failed to delete
+                $msg = "Protocol failed to delete. Please try again!";
+                $response->setWs(WS_CODE_REST_DB, $msg, true);
             }
-            echoResponse(200, $response);
+            Responder::echoResponse(200, $response);
         });
+
+/**
+ * Deleting script. Users can delete public and theirs scripts
+ * method DELETE
+ * url /scripts
+ */
+$app->delete('/scripts/:id', 'authenticate', function($script_id) use($app) {
+    global $user_id;
+    global $user_role_id;
+
+    checkHasRightCUD($user_role_id);
+
+    $db = new DbHandler();
+    $response = new Response();
+
+    $result = $db->deleteScript($user_id, $user_role_id, $script_id);
+
+    if ($result) {
+        if($result == WS_CODE_REST_AUTH){
+            handleAuthError();
+        }
+        // script deleted successfully
+        $msg = "Script deleted succesfully";
+        $response->setWs(WS_CODE_OK, $msg, false);
+    } else {
+        // script failed to delete
+        $msg = "Script failed to delete. Please try again!";
+        $response->setWs(WS_CODE_REST_DB, $msg, true);
+    }
+    Responder::echoResponse(200, $response);
+});
+
+/*
+ * ---------------------------- HELPERS ---------------------------------
+ */
 
 /**
  * Verifying required params posted or not
@@ -414,7 +602,7 @@ function validateEmail($email) {
  * @param string $protocolJSON JSON string
  * @return Protocol
  */
-function parseProtocol($protocolJSON) {
+function processProtocol($protocolJSON) {
     $protocol = json_decode($protocolJSON);
 
     if($protocol == NULL) {
@@ -424,11 +612,56 @@ function parseProtocol($protocolJSON) {
         Responder::echoResponse(400, $response);
     }
 
-    $parser = new JSONFormatChecker();
-    $parser->checkProtocolMandatory($protocol);
-    $parser->checkProtocolOpt($protocol);
+    $parser = new JSONRequestParser();
+    $parser->parseProtocol($protocol);
 
     return $parser->getProtocol();
+}
+
+/**
+ * Parses and checks values of provided script
+ * @param string $scriptJSON JSON string
+ * @return Script
+ */
+function processScript($scriptJSON) {
+    $script = json_decode($scriptJSON);
+
+    if($script == NULL) {
+        $response = new Response();
+        $msg = "Bad JSON syntax.";
+        $response->setWs(WS_CODE_JSON_SYNTAX, $msg, true);
+        Responder::echoResponse(400, $response);
+    }
+
+    $parser = new JSONRequestParser();
+    $parser->parseScript($script);
+
+    return $parser->getScript();
+}
+
+/**
+ * This shouldn't happen as soon as client uses REST api right
+ * app shoudn't allow user's with these roles even proceed to this http method
+ * @param $userRoleId
+ */
+function checkHasRightCUD($userRoleId){
+    if($userRoleId == USER_ROLE_NOBODY ||  $userRoleId == USER_ROLE_EXECUTOR){
+        $response = new Response();
+        $msg = "You don't have rights to issue this operation.";
+        $response->setWs(WS_CODE_REST_AUTH, $msg, true);
+        Responder::echoResponse(400, $response);
+    }
+}
+
+function handleAuthError(){
+    $app = \Slim\Slim::getInstance();
+
+    $response = new Response();
+    $msg = "Auth problem. You don't have sufficient rights to do this operation";
+    $response->setWs(WS_CODE_REST_AUTH, $msg, true);
+    Responder::echoResponse(200, $response);
+
+    $app->stop();
 }
 
 $app->run();
