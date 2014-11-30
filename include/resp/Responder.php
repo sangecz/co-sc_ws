@@ -40,7 +40,7 @@ class Responder {
 //        var_dump($response);
         echo json_encode($response->jsonSerialize());
 
-        if($status_code == 400) {
+        if($status_code == 400 || $status_code == 404) {
             $app->stop();
         }
     }

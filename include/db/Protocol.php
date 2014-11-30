@@ -23,10 +23,10 @@ class Protocol {
     private $community;
     private $type;
     private $role;
+    private $db_id;
 
     function __construct()
     {
-        require_once dirname(__FILE__) . '/Config.php';
         $this->authPasswd = "";
         $this->authProto = "";
         $this->community = "";
@@ -41,36 +41,68 @@ class Protocol {
         $this->sshArgs = "";
         $this->version = "";
         $this->type = "";
-        $this->role = PS_ROLE_PRIVATE;
+        $this->role = "";
+
     }
 
     /**
-     * Constructor
-     * @param Protocol $protocol
+     * @param $id
+     * @param $name
+     * @param $description
+     * @param $ps_role_id
+     * @param $port
+     * @param $version
+     * @param $sshArgs
+     * @param $level
+     * @param $passwd
+     * @param $login
+     * @param $authPasswd
+     * @param $privPasswd
+     * @param $privProto
+     * @param $authProto
+     * @param $community
+     * @param $protocol_type_id
+     * @param $created_at
      * @return Protocol
      */
-
-
-    public static function withProtocol($protocol)
+    public static function withAttributes($id,	 $name, $description, $ps_role_id, $port, $version, $sshArgs, $level, $passwd,
+                                          $login, $authPasswd, $privPasswd, $privProto, $authProto, $community, $protocol_type_id, $created_at)
     {
         $instance = new self();
-        $instance->authPasswd = $protocol->getAuthPasswd();
-        $instance->authProto = $protocol->getAuthProto();
-        $instance->community = $protocol->getCommunity();
-        $instance->desc = $protocol->getDesc();
-        $instance->level = $protocol->getLevel();
-        $instance->login = $protocol->getLogin();
-        $instance->name = $protocol->getName();
-        $instance->passwd = $protocol->getPasswd();
-        $instance->port = $protocol->getPort();
-        $instance->privPasswd = $protocol->getPrivPasswd();
-        $instance->privProto = $protocol->getPrivProto();
-        $instance->sshArgs = $protocol->getSshArgs();
-        $instance->version = $protocol->getVersion();
-        $instance->type = $protocol->getType();
-        $instance->role = $protocol->getRole();
+        $instance->authPasswd = $authPasswd;
+        $instance->authProto = $authProto;
+        $instance->community = $community;
+        $instance->desc = $description;
+        $instance->level = $level;
+        $instance->login = $login;
+        $instance->name = $name;
+        $instance->passwd = $passwd;
+        $instance->port = $port;
+        $instance->privPasswd = $privPasswd;
+        $instance->privProto = $privProto;
+        $instance->sshArgs = $sshArgs;
+        $instance->version = $version;
+        $instance->type = $protocol_type_id;
+        $instance->role = $ps_role_id;
+        $instance->db_id = $id;
 
         return $instance;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDbId()
+    {
+        return $this->db_id;
+    }
+
+    /**
+     * @param mixed $db_id
+     */
+    public function setDbId($db_id)
+    {
+        $this->db_id = $db_id;
     }
 
     /**
@@ -127,7 +159,7 @@ class Protocol {
      */
     public function setAuthPasswd($authPasswd)
     {
-        $this->authPasswd = $authPasswd;
+        $this->authPasswd = PassHash::encrypt($authPasswd);
     }
 
     /**
@@ -239,7 +271,7 @@ class Protocol {
      */
     public function setPasswd($passwd)
     {
-        $this->passwd = $passwd;
+        $this->passwd = PassHash::encrypt($passwd);
     }
 
     /**
@@ -271,7 +303,7 @@ class Protocol {
      */
     public function setPrivPasswd($privPasswd)
     {
-        $this->privPasswd = $privPasswd;
+        $this->privPasswd = PassHash::encrypt($privPasswd);
     }
 
     /**

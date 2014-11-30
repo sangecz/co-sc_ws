@@ -12,12 +12,11 @@ class JSONRequestParser {
     private $retScript;
 
     function __construct() {
-        require_once dirname(__FILE__) . '/Config.php';
-        require_once dirname(__FILE__) . '/db/DbHandler.php';
-        require_once dirname(__FILE__) . '/db/Protocol.php';
-        require_once dirname(__FILE__) . '/db/Script.php';
-        require_once dirname(__FILE__) . '/resp/Responder.php';
-        require_once dirname(__FILE__) . '/resp/Response.php';
+        require_once  APP_PATH . '/db/DbHandler.php';
+        require_once  APP_PATH . '/db/Protocol.php';
+        require_once  APP_PATH . '/db/Script.php';
+        require_once  APP_PATH . '/resp/Responder.php';
+        require_once  APP_PATH . '/resp/Response.php';
         $this->retProtocol = new Protocol();
         $this->retScript = new Script();
     }
@@ -191,7 +190,7 @@ class JSONRequestParser {
 
         }
         if($this->retProtocol->getType() == SSH_STR) {
-            $port = array_key_exists("port", $protocol->snmpAttr) ? $protocol->sshAttr->port : "";
+            $port = array_key_exists("port", $protocol->sshAttr) ? $protocol->sshAttr->port : "";
             $this->retProtocol->setPort($this->checkPort($port, DEFAULT_SSH_PORT, "sshAttr->port"));
 
             $sshArgs = array_key_exists("sshArgs", $protocol->sshAttr) ? $protocol->sshAttr->sshArgs : "";
@@ -227,6 +226,7 @@ class JSONRequestParser {
 
     private function getArgsFromArray($argsArr) {
         if (is_array($argsArr) && !empty($argsArr)) {
+
             $ret = "";
             for($i = 0; $i < count($argsArr); $i++) {
                 $ret .= $argsArr[$i] . " ";

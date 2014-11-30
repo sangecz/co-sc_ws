@@ -12,19 +12,67 @@ class Script {
     private $name;
     private $description;
     private $address;
-    private $contrent;
+    private $content;
     private $protocol_id;
+    private $db_id;
 
     function __construct()
     {
         $this->address = "";
-        $this->contrent = "";
+        $this->content = "";
         $this->description = "";
         $this->name = "";
         $this->protocol_id = "";
-        $this->ps_role_id = PS_ROLE_PRIVATE;
+        $this->ps_role_id = "";
     }
 
+    /**
+     * @return array
+     */
+
+    public function getArray() {
+        return get_object_vars($this);
+    }
+
+    /**
+     * @param $id
+     * @param $ps_role_id
+     * @param $name
+     * @param $description
+     * @param $address
+     * @param $content
+     * @param $protocol_id
+     * @return Script
+     */
+    public static function withAttributes($id, $ps_role_id, $name, $description, $address,$content, $protocol_id)
+    {
+        $instance = new self();
+        $instance->db_id = $id;
+        $instance->address = $address;
+        $instance->content = $content;
+        $instance->description = $description;
+        $instance->name = $name;
+        $instance->protocol_id = $protocol_id;
+        $instance->ps_role_id = $ps_role_id;
+
+        return $instance;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDbId()
+    {
+        return $this->db_id;
+    }
+
+    /**
+     * @param mixed $db_id
+     */
+    public function setDbId($db_id)
+    {
+        $this->db_id = $db_id;
+    }
 
     /**
      * @return mixed
@@ -47,7 +95,7 @@ class Script {
      */
     public function getContent()
     {
-        return $this->contrent;
+        return $this->content;
     }
 
     /**
@@ -55,7 +103,7 @@ class Script {
      */
     public function setContent($content)
     {
-        $this->contrent = $content;
+        $this->content = $content;
     }
 
     /**

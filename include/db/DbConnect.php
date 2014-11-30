@@ -16,10 +16,12 @@ class DbConnect {
 
     /**
      * Establishing database connection
+     * @internal param app $path path
      * @return database connection handler
      */
     function connect() {
-        include_once dirname(__FILE__) . '/Config.php';
+
+        include_once $_SERVER['DOCUMENT_ROOT'] . '/co-sc/Config.php';
 
         // Connecting to mysql database
         $this->conn = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);

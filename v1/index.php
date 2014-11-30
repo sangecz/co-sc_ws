@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * This file greatly extends tutorial mentioned below
  *
@@ -8,15 +7,17 @@
  * @link URL Tutorial link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
  */
 
+// TODO support more HTTP response codes: http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+// TODO distinguish  between auth and non existence in return messages
+
 require_once '../include/db/DbHandler.php';
-require_once '../include/Config.php';
+require_once '../Config.php';
 require_once '../include/resp/Responder.php';
 require_once '../include/resp/Response.php';
 require_once '../include/db/PassHash.php';
+require_once '../include/run/ScriptRunner.php';
 require_once '../include/parsers/JSONRequestParser.php';
 require '.././libs/Slim/Slim.php';
-
-// TODO utridit adresarovou strukturu
 
 \Slim\Slim::registerAutoloader();
 
@@ -287,11 +288,11 @@ $app->get('/scripts/:id', 'authenticate', function($script_id) {
     $db = new DbHandler();
 
     $response = new Response();
-    // fetch script
-    $result = $db->getScript($script_id, $user_id);
+
+    $script = $db->getScript($script_id, $user_id);
 
 
-    if($result == NULL) {
+    if($script == NULL) {
         $msg = "The requested resource doesn't exists";
         $response->setWs(WS_CODE_REST_DB, $msg, true);
         Responder::echoResponse(404, $response);
@@ -300,21 +301,23 @@ $app->get('/scripts/:id', 'authenticate', function($script_id) {
     $msg = "Script successfully run.";
     $response->setWs(WS_CODE_OK, $msg,false);
     $data = array();
-    $data['script'] = $result;
+    $data['script'] = $script->getArray();
 
-    $result = $db->getProtocol($data['script']['protocol_id']);
-    if($result == NULL) {
+    $protocol = $db->getProtocol($data['script']['protocol_id']);
+    if($protocol == NULL) {
         $msg = "The requested resource doesn't exists";
         $response->setWs(WS_CODE_REST_DB, $msg, true);
         Responder::echoResponse(404, $response);
     }
 
-    $data['protocol'] = $result;
+    $data['protocol'] = $protocol->getArray();
 
     // TODO trida ScriptRunner
-
-    $response->setData($data);
-    Responder::echoResponse(200, $response);
+    $scriptRunner = new ScriptRunner($script, $protocol);
+    $scriptRunner->process();
+//
+//    $response->setData($data);
+//    Responder::echoResponse(200, $response);
 
         });
 
@@ -347,7 +350,7 @@ $app->post('/protocols', 'authenticate', function() use ($app) {
     if ($protocol_id != NULL) {
         $msg = "Protocol created successfully";
         $data = array();
-        $data["script_id"] = $protocol_id;
+        $data["protocol_id"] = $protocol_id;
         $response->setData($data);
         $response->setWs(WS_CODE_OK, $msg, false);
         Responder::echoResponse(201, $response);
@@ -379,11 +382,11 @@ $app->post('/scripts', 'authenticate', function() use ($app) {
     $response = new Response();
 
     // creating new script
-    $script_id = $db->createScript($user_id, $protocolObj);
+    $script_id = $db->createScript($user_id, $user_role_id, $protocolObj);
 
     if ($script_id != NULL) {
-        if($script_id == WS_CODE_REST_AUTH){
-           handleAuthError();
+        if($script_id === WS_CODE_REST_AUTH){
+            handleAuthOrNonExistError();
         }
         $msg = "Script created successfully";
         $data = array();
@@ -425,13 +428,12 @@ $app->put('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
             // updating protocol
             $result = $db->updateProtocol($user_id, $user_role_id, $protocol_id, $protocolObj);
 
-            if ($result) {
-                if($result == WS_CODE_REST_AUTH){
-                    handleAuthError();
-                }
+            if ($result === true) {
                 // protocol updated successfully
                 $msg = "Protocol updated successfully";
                 $response->setWs(WS_CODE_OK, $msg, false);
+            } else if($result === WS_CODE_REST_AUTH){
+                    handleAuthOrNonExistError();
             } else {
                 // protocol failed to update
                 $msg = "Protocol failed to update. Please try again!";
@@ -463,13 +465,12 @@ $app->put('/scripts/:id', 'authenticate', function($script_id) use($app) {
     // updating script
     $result = $db->updateScript($user_id, $user_role_id, $script_id, $scriptObj);
 
-    if ($result) {
-        if($result == WS_CODE_REST_AUTH){
-            handleAuthError();
-        }
+    if ($result === true) {
         // script updated successfully
         $msg = "Script updated successfully";
         $response->setWs(WS_CODE_OK, $msg, false);
+    } else if ($result === WS_CODE_REST_AUTH){
+            handleAuthOrNonExistError();
     } else {
         // script failed to update
         $msg = "Script failed to update. Please try again!";
@@ -487,30 +488,29 @@ $app->put('/scripts/:id', 'authenticate', function($script_id) use($app) {
  * url /protocols
  */
 $app->delete('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
-            global $user_id;
-            global $user_role_id;
+    global $user_id;
+    global $user_role_id;
 
-            checkHasRightCUD($user_role_id);
+    checkHasRightCUD($user_role_id);
 
-            $db = new DbHandler();
-            $response = new Response();
+    $db = new DbHandler();
+    $response = new Response();
 
-            $result = $db->deleteProtocol($user_id, $user_role_id, $protocol_id);
+    $result = $db->deleteProtocol($user_id, $user_role_id, $protocol_id);
 
-            if ($result) {
-                if($result == WS_CODE_REST_AUTH){
-                    handleAuthError();
-                }
-                // protocol deleted successfully
-                $msg = "Protocol deleted succesfully";
-                $response->setWs(WS_CODE_OK, $msg, false);
-            } else {
-                // protocol failed to delete
-                $msg = "Protocol failed to delete. Please try again!";
-                $response->setWs(WS_CODE_REST_DB, $msg, true);
-            }
-            Responder::echoResponse(200, $response);
-        });
+    if ($result === true) {
+        // protocol deleted successfully
+        $msg = "Protocol deleted succesfully";
+        $response->setWs(WS_CODE_OK, $msg, false);
+    } else if($result === WS_CODE_REST_AUTH){
+        handleAuthOrNonExistError();
+    } else {
+        // protocol failed to delete
+        $msg = "Protocol failed to delete. Please try again!";
+        $response->setWs(WS_CODE_REST_DB, $msg, true);
+    }
+    Responder::echoResponse(200, $response);
+});
 
 /**
  * Deleting script. Users can delete public and theirs scripts
@@ -528,13 +528,12 @@ $app->delete('/scripts/:id', 'authenticate', function($script_id) use($app) {
 
     $result = $db->deleteScript($user_id, $user_role_id, $script_id);
 
-    if ($result) {
-        if($result == WS_CODE_REST_AUTH){
-            handleAuthError();
-        }
+    if ($result === true) {
         // script deleted successfully
         $msg = "Script deleted succesfully";
         $response->setWs(WS_CODE_OK, $msg, false);
+    } else if($result === WS_CODE_REST_AUTH){
+        handleAuthOrNonExistError();
     } else {
         // script failed to delete
         $msg = "Script failed to delete. Please try again!";
@@ -653,11 +652,11 @@ function checkHasRightCUD($userRoleId){
     }
 }
 
-function handleAuthError(){
+function handleAuthOrNonExistError(){
     $app = \Slim\Slim::getInstance();
 
     $response = new Response();
-    $msg = "Auth problem. You don't have sufficient rights to do this operation";
+    $msg = "You don't have sufficient rights to do this operation or script/protocol is not accessible.";
     $response->setWs(WS_CODE_REST_AUTH, $msg, true);
     Responder::echoResponse(200, $response);
 

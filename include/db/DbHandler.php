@@ -221,10 +221,13 @@ class DbHandler {
      * @param String $user_id user id to whom script belongs to
      * @param Script $script obj
      */
-    public function createScript($user_id, $script) {
+    public function createScript($user_id, $user_role_id, $script) {
 
-        $resp = $this->isProtocolAccessible($user_id, $script->getProtocolId());
-        if($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
+        if ($user_role_id != USER_ROLE_ADMIN) {
+
+            $resp = $this->isProtocolAccessible($user_id, $script->getProtocolId());
+            if($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
+        }
 
         $sql = "INSERT INTO scripts "
               ." (ps_role_id,name ,description,address,content,protocol_id) "
@@ -269,10 +272,9 @@ class DbHandler {
      * Creating new protocol
      * @param int $user_id user id
      * @param int $role_id default user_role id, could be overrided inside protocol creation request
-     * @param Protocol $protocol protocol object
+     * @param Protocol $p protocol object
      */
-    public function createProtocol($user_id, $protocol) {
-        $p = Protocol::withProtocol($protocol);
+    public function createProtocol($user_id, $p) {
 
         $sql = "INSERT INTO protocols(name, description, ps_role_id, port, version, sshArgs, level, passwd, "
             . "login, authPasswd, privPasswd, privProto, authProto, community, protocol_type_id"
@@ -332,6 +334,7 @@ class DbHandler {
     /**
      * Fetching single script
      * @param String $script_id id of the script
+     * @return Script
      */
     public function getScript($script_id, $user_id) {
         $sql = "SELECT s.* "
@@ -343,7 +346,7 @@ class DbHandler {
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("ii", $script_id, $user_id);
         if ($stmt->execute()) {
-            $res = array();
+
             $id = "";
             $ps_role_id = "";
             $name = "";
@@ -352,19 +355,16 @@ class DbHandler {
             $content = "";
             $created_at = "";
             $protocol_id = "";
+
             $stmt->bind_result($id,	$ps_role_id, $name, $description, $address, $content, $created_at, $protocol_id);
 
-            $stmt->fetch();
-            $res["id"] = $id;
-            $res["ps_role_id"] = $ps_role_id;
-            $res["name"] = $name;
-            $res["description"] = $description;
-            $res["address"] = $address;
-            $res["content"] = $content;
-            $res["created_at"] = $created_at;
-            $res["protocol_id"] = $protocol_id;
+            if(!$stmt->fetch()) return NULL;
+
+            $script = Script::withAttributes($id, $ps_role_id, $name, $description, $address, $content, $protocol_id);
+
             $stmt->close();
-            return $res;
+
+            return $script;
         } else {
             return NULL;
         }
@@ -373,6 +373,7 @@ class DbHandler {
     /**
      * Fetching single protocol
      * @param String $protocol_id id of the protocol
+     * @return Protocol
      */
     public function getProtocol($protocol_id) {
         $sql = "SELECT p.* "
@@ -383,32 +384,20 @@ class DbHandler {
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $protocol_id);
         if ($stmt->execute()) {
-            $res = array();
+
+                $id = "";	 $name = ""; $description = ""; $ps_role_id = ""; $port = ""; $version = ""; $sshArgs = ""; $level = ""; $passwd = "";
+            $login = ""; $authPasswd = ""; $privPasswd = ""; $privProto = ""; $authProto = ""; $community = ""; $protocol_type_id = ""; $created_at = "";
 
             $stmt->bind_result($id,	 $name, $description, $ps_role_id, $port, $version, $sshArgs, $level, $passwd,
                 $login, $authPasswd, $privPasswd, $privProto, $authProto, $community, $protocol_type_id, $created_at);
 
-            $stmt->fetch();
-            $res["id"] = $id;
-            $res["name"] = $name;
-            $res["description"] = $description;
-            $res["ps_role_id"] = $ps_role_id;
-            $res["port"] = $port;
-            $res["version"] = $version;
-            $res["sshArgs"] = $sshArgs;
-            $res["level"] = $level;
-            $res["passwd"] = $passwd;
-            $res["login"] = $login;
-            $res["authPasswd"] = $authPasswd;
-            $res["privPasswd"] = $privPasswd;
-            $res["privProto"] = $privProto;
-            $res["authProto"] = $authProto;
-            $res["community"] = $community;
-            $res["protocol_type_id"] = $protocol_type_id;
-            $res["created_at"] = $created_at;
+            if(!$stmt->fetch()) return NULL;
+
+            $protocol = Protocol::withAttributes($id,$name, $description, $ps_role_id, $port, $version, $sshArgs, $level, $passwd,
+                $login, $authPasswd, $privPasswd, $privProto, $authProto, $community, $protocol_type_id, $created_at);
 
             $stmt->close();
-            return $res;
+            return $protocol;
         } else {
             return NULL;
         }
@@ -515,10 +504,10 @@ class DbHandler {
                 echo 'Caught exception: ',  $e->getMessage(), "\n";
             }
 
-            $stmt->execute();
-            $num_affected_rows = $stmt->affected_rows;
+            $res = $stmt->execute();
+
             $stmt->close();
-            return $num_affected_rows > 0;
+            return $res;
         }
     }
 
@@ -531,12 +520,12 @@ class DbHandler {
 
     public function updateScript($user_id, $user_role_id, $script_id, $script) {
         if($user_role_id != USER_ROLE_ADMIN) {
-
             $resp = $this->isScriptAccessible($user_id, $script_id);
             if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
 
             $resp = $this->isProtocolAccessible($user_id, $script->getProtocolId());
             if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
+
         }
 
         $sql = 'UPDATE scripts s, user_script us '
@@ -551,18 +540,19 @@ class DbHandler {
             $content = $script->getContent();
             $address = $script->getAddress();
             $protocol_id = $script->getProtocolId();
-
             try {
                 $stmt->bind_param("ssissiii", $name, $description, $ps_role_id, $content, $address, $protocol_id,
                     $script_id, $user_id);
+
             } catch (Exception $e) {
                 echo 'Caught exception: ',  $e->getMessage(), "\n";
             }
 
-            $stmt->execute();
-            $num_affected_rows = $stmt->affected_rows;
+            $res = $stmt->execute();
+
             $stmt->close();
-            return $num_affected_rows > 0;
+            return $res;
+
         }
 
     }
@@ -594,10 +584,10 @@ class DbHandler {
                 $sql = "DELETE p FROM protocols p WHERE p.id = ?";
                 if ($stmt = $this->conn->prepare($sql)) {
                     $stmt->bind_param("i", $protocol_id);
-                    $stmt->execute();
-                    $num_affected_rows = $stmt->affected_rows;
+                    $res = $stmt->execute();
+
                     $stmt->close();
-                        return $num_affected_rows > 0;
+                    return $res;
                 }
 //                else {
 //                    printf("Errormessage2: %s\n", $this->conn->error);
@@ -612,10 +602,8 @@ class DbHandler {
      */
     public function deleteScript($user_id, $user_role_id, $script_id) {
         if($user_role_id != USER_ROLE_ADMIN) {
-            $resp = $this->isProtocolAccessible($user_id, $script_id);
-            if ($resp->num_rows <= 0) {
-                return WS_CODE_REST_AUTH;
-            }
+            $resp = $this->isScriptAccessible($user_id, $script_id);
+            if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
         }
 
         $sql =  "DELETE us \n"
@@ -626,17 +614,17 @@ class DbHandler {
 
         if ($stmt = $this->conn->prepare($sql)) {
             $stmt->bind_param("i", $script_id);
-            $stmt->execute();
-            $num_affected_rows = $stmt->affected_rows;
+            $res = $stmt->execute();
+
             $stmt->close();
-            if($num_affected_rows > 0) {
+            if($res) {
                 $sql = "DELETE s FROM scripts s WHERE s.id = ?";
                 if ($stmt = $this->conn->prepare($sql)) {
                     $stmt->bind_param("i", $script_id);
-                    $stmt->execute();
-                    $num_affected_rows = $stmt->affected_rows;
+                    $res = $stmt->execute();
+
                     $stmt->close();
-                    return $num_affected_rows > 0;
+                    return $res;
                 }
             }
         }
