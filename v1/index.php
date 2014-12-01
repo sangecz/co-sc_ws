@@ -48,7 +48,7 @@ function authenticate(\Slim\Route $route) {
             // api key is not present in users table
             $msg = "Access Denied. Invalid Api key";
             $response->setWs(WS_CODE_REST_AUTH,$msg,true);
-            Responder::getInstance()->echoResponse(401, $response);
+            Responder::echoResponse(401, $response);
             $app->stop();
         } else {
             global $user_id;
@@ -61,7 +61,7 @@ function authenticate(\Slim\Route $route) {
         // api key is missing in header
         $msg = "Api key is misssing";
         $response->setWs(WS_CODE_REST_AUTH,$msg,true);
-        Responder::getInstance()->echoResponse(400, $response);
+        Responder::echoResponse(400, $response);
         $app->stop();
     }
 }
@@ -315,11 +315,10 @@ $app->get('/scripts/:id', 'authenticate', function($script_id) {
     // TODO trida ScriptRunner
     $scriptRunner = new ScriptRunner($script, $protocol);
     $scriptRunner->process();
-//
-//    $response->setData($data);
-//    Responder::echoResponse(200, $response);
 
-        });
+    // TODO pokud skonci uspesne skrypt tak zalogovat
+//    $db->logExecuted..
+});
 
 /*
  * ---------------------------- CREATE METHODS: POST------------------------------
@@ -591,7 +590,7 @@ function validateEmail($email) {
         $response = new Response();
         $msg = 'Email address is not valid';
         $response->setWs(WS_CODE_REST_REGISTER, $msg, true);
-        Responder::getInstance()->echoResponse(400, $response);
+        Responder::echoResponse(400, $response);
         $app->stop();
     }
 }

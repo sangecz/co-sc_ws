@@ -9,15 +9,11 @@
 class Response {
 
     private $ws;
-    private $cmd;
-    private $protocol;
     private $data;
 
     function __construct()
     {
         $this->ws = NULL;
-        $this->protocol = NULL;
-        $this->cmd = NULL;
         $this->data = NULL;
     }
 
@@ -48,57 +44,13 @@ class Response {
     }
 
     /**
-     * @return array
-     */
-    public function getCmd()
-    {
-        return $this->cmd;
-    }
-
-    /**
      * @param string $output
-     * @param int $exitCode
      */
     public function setCmd($output, $exitCode)
     {
-        $this->cmd = array();
-        $this->cmd ['output'] = $output;
-        $this->cmd ['exitCode'] = $exitCode;
-    }
-
-    /**
-     * @param array $protocol
-     */
-    public function setCmdArray($cmd)
-    {
-        $this->cmd = $cmd;
-    }
-
-    /**
-     * @return array
-     */
-    public function getProtocol()
-    {
-        return $this->protocol;
-    }
-
-    /**
-     * @param array $protocol
-     */
-    public function setProtocolArray($protocol)
-    {
-        $this->protocol = $protocol;
-    }
-
-    /**
-     * @param string $output
-     * @param int $exitCode
-     */
-    public function setProtocol($output, $exitCode)
-    {
-        $this->protocol = array();
-        $this->protocol['output'] = $output;
-        $this->protocol['exitCode'] = $exitCode;
+        $this->data = array();
+        $this->data ['scriptOutput'] = $output;
+        $this->data ['exitCode'] = $exitCode;
     }
 
     /**
@@ -121,6 +73,26 @@ class Response {
         $this->ws['message'] = $msg;
         $this->ws['error'] = $err;
     }
+
+    public function getExitCode(){
+        if($this->data != NULL) {
+            return $this->data['exitCode'];
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * @param $statusCode
+     */
+    public function setExitCode($exitCode){
+        if($this->data == NULL) {
+            $this->data = array();
+        }
+        $this->data['exitCode'] = $exitCode;
+        $this->data['scriptOutput'] = NULL;
+    }
+
 
 
 }

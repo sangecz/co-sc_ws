@@ -5,18 +5,50 @@
  * Date: 11/30/14
  * Time: 12:10 AM
  */
-require_once 'include/db/PassCrypt.php';
+//set_include_path('/var/www/co-sc');
+include_once 'Config.php';
+set_include_path( LIB_PATH . '/phpseclib/');
+include('libs/phpseclib/Net/SSH2.php');
 
-$crypt = new PassCrypt();
+include('libs/phpseclib/Net/SFTP.php');
+$t = microtime();
+$ssh = new Net_SSH2('sange-icinga.hukot.net', 22);
+if (!$ssh->login('root', 'spring234')) {
+    exit('Login Failed');
+}
 
-$plain_txt = "This is my plain text";
-echo "Plain Text = $plain_txt\n";
+$sftp = new Net_SFTP('sange-icinga.hukot.net');
+if (!$sftp->login('root', 'spring234')) {
+    exit('Login Failed');
+}
 
-$encrypted_txt = $crypt->encrypt($plain_txt);
-echo "Encrypted Text = $encrypted_txt\n";
+$myfile = fopen("tmp/local.txt", "w") or die("Unable to open file!");
+$txt = <<<COSC
+#!/usr/bin/python
 
-$decrypted_txt = $crypt->decrypt($encrypted_txt);
-echo "Decrypted Text = $decrypted_txt\n";
+import os
+import socket
 
-if( $plain_txt === $decrypted_txt ) echo "SUCCESS";
-else echo "FAILED";
+print(os.getloadavg())
+print(socket.gethostname())
+COSC;
+
+fwrite($myfile, $txt);
+fclose($myfile);
+
+$sftp->put('remote.py', 'tmp/local.txt', NET_SFTP_LOCAL_FILE);
+
+
+$ssh->enableQuietMode();
+echo "stdout: " . $ssh->exec('chmod +x remote.py && ./remote.py') . "<br>";
+echo "stderr: " . $ssh->getStdError() . "<br>";
+echo "exitcode: " . $ssh->getExitStatus() . "<br>";
+
+$sftp->delete('remote.py');
+
+//print_r($sftp->nlist());
+
+//echo "<br><br>";
+//echo $ssh->read('root@sange-icinga:~#');
+
+

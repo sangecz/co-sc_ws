@@ -22,6 +22,8 @@ class ScriptRunner {
         require_once APP_PATH . '/db/Protocol.php';
         require_once APP_PATH . '/resp/Response.php';
         require_once APP_PATH . '/resp/Responder.php';
+        require_once APP_PATH . '/parsers/CommandResponseParser.php';
+        require_once 'Command.php';
         $this->response = new Response();
         $this->script = $script;
         $this->protocol = $protocol;
@@ -33,22 +35,40 @@ class ScriptRunner {
         // TODO construct run
         $command = $this->constructCommand();
 
-        // TODO run
-        $this->execute($command, $this->script->getAddress());
-
-        // TODO parse response
-
-        // TODO respond
+        // TODO run & parse response
+        $partialResponse = $this->execute($command);
 
 
-//        return $this->response;
+        $this->respond($partialResponse);
+
     }
 
     /**
-     * ------------------------- EXECUTE COMMAND -----------------------
+     * --------------------- RESPOND TO COMMAND's RESPONSE ----------------
      */
-    private function execute($cmd, $host) {
-        $cmd .= APPENDIX;
+
+    /**
+     * @param Response $resp
+     */
+    private function respond($resp){
+        if(DEBUG == 1) {
+            echo "FINAL_RESP::\n";
+            var_dump($resp);
+        }
+
+        if($resp->getWs()['error']) {
+            Responder::echoResponse(400, $resp);
+        }
+        $resp->setWs(WS_CODE_OK, "Script run successfully", false);
+        Responder::echoResponse(200, $resp);
+    }
+
+    /**
+     * ------------------------- EXECUTE & PARSE COMMAND ------------------
+     */
+
+
+    private function execute($cmd) {
 
         if(DEBUG == 1) {
             echo "COMMAND:\n".$cmd."\n";
@@ -57,85 +77,40 @@ class ScriptRunner {
         $returned = shell_exec($cmd);
 
         if(DEBUG == 1) {
-            echo "RETURNED:\n".$returned."\n";
+            echo "RETURNED:\n**".$returned."**\n";
         }
-//        parseReply($returned);
-//
-//        $exitCode = $retJSON->protocol->exitCode;
-//        // return check (odd and even fenomenon: try again)
-//        if($exitCode == 2) {
-//            $returned = shell_exec($cmd);
-//            parseReply($returned);
-//        }
-//
-//        handleExitCode($returned, $host);
+
+        $respParser = new CommandResponseParser($this->protocol->getType());
+        $returnedAltered = $respParser->parse($returned);
+
+        $exitCode = $respParser->getResponse()->getExitCode();
+        // return check (odd and even fenomenon: try again)
+        if($exitCode == 2) {
+            $returned = shell_exec($cmd);
+            $returnedAltered = $respParser->parse($returned);
+        }
+
+        $respParser->handleExitCode($returnedAltered);
+
+        return $respParser->getResponse();
     }
     /**
      * ------------------------- CONSTRACT COMMAND ---------------------
      */
-
-    /**
-     * @param $protocol Protocol
-     * @param $script Script
-     */
     private function constructCommand() {
+        $cmd = NULL;
+
         if($this->protocol->getType() == SSH_STR) {
-            $execStr = $this->constructSSHCmd();
-            return $execStr;
+            $cmd = new SSHCommand($this->script, $this->protocol);
         }
-//        if($this->protocol->getType() == SNMP_STR) {
-//
-//            $version = $obj->protocol->snmpAttr->version;
-//            $versionAuthHost = $version." ".getSNMPAuthPart($obj)." ".$host." ";
-//
-//            $cmdArgs = $obj->cmd->args;
-//            $execStr = "snmpset -m +NET-SNMP-EXTEND-MIB -v ".$versionAuthHost
-//                ."'nsExtendStatus.\"cmd\"' = 'createAndGo' "
-//                ."'nsExtendCommand.\"cmd\"' = '".$cmdPath."' ";
-//
-//            $execStr .= "'nsExtendArgs.\"cmd\"' = '".trim(getArgsFromArray($cmdArgs))."'";
-//
-//            execute($execStr, $host);
-//
-//            // TODO sudo
-                // TODO PassHash::decrypt();
-//            $execStr = "snmpwalk -m +NET-SNMP-EXTEND-MIB -v".$versionAuthHost;
-//            // execute remote script
-//            execute($execStr . " 'nsExtendOutputFull.\"cmd\"'", $host);
-//            // get script result
-//            execute($execStr . " 'nsExtendResult.\"cmd\"'", $host);
-//        }
+        if($this->protocol->getType() == SNMP_STR) {
+            $cmd = new SNMPCommand($this->script, $this->protocol);
+        }
 
+        $cmd->constructCmd();
+        return $cmd->getExecString();
     }
 
-    private function constructSSHCmd() {
-        $host = $this->script->getAddress();
-
-        $passwd = "-p " . PassHash::decrypt($this->protocol->getPasswd());
-        $login = $this->protocol->getLogin();
-        $port = $this->protocol->getPort();
-        $args = $this->protocol->getSshArgs();
-
-        $sshArgs = trim("-o StrictHostKeyChecking=no -p " . $port . " " . $args);
-
-        $sshCmd = "sshpass " . $passwd . " ssh " . $sshArgs . " " . $login . "@" . $host . " "
-            . $this->getCmd();
-
-        return $sshCmd;
-    }
-
-    /**
-     * @return string command
-     */
-    private function getCmd() {
-        $content = $this->script->getContent();
-
-        $cmd = "<<COSC\n"
-              . $content . "\n"
-              ."COSC\n";
-
-        return $cmd;
-    }
 
     /**
      * ----------------------- DEPENDENCIES ------------------------------

@@ -49,7 +49,7 @@ class JSONRequestParser {
         $this->retScript->setAddress($script->address);
 
         $this->checkMandatoryAttribute(array_key_exists("content", $script), "script->content");
-        $this->retScript->setContent($script->content);
+        $this->checkContent($script->content);
 
         // determin role of script
         $role = $this->checkRole($script);
@@ -58,6 +58,15 @@ class JSONRequestParser {
         $this->checkMandatoryAttribute(array_key_exists("protocol_id", $script), "script->protocol_id");
         $this->retScript->setProtocolId($script->protocol_id);
 
+    }
+
+    private function checkContent($content) {
+        if(strpos(trim($content), "#!/") !== FALSE) {
+            $this->retScript->setContent($content);
+        } else {
+            $msg = "The content of the script should contain hashbang, e.g. '#!/bin/bash'.";
+            $this->printResponseErr(WS_CODE_REQUIRED, $msg);
+        }
     }
 
 
@@ -75,7 +84,7 @@ class JSONRequestParser {
      * @param int $wsCode
      * @param String $msg
      */
-    private function printResponse($wsCode, $msg){
+    private function printResponseErr($wsCode, $msg){
         $resp = new Response();
         $resp->setWs($wsCode, $msg, true);
         Responder::echoResponse(400, $resp);
@@ -90,7 +99,7 @@ class JSONRequestParser {
         if(!$attr || empty($attr)) {
             $msg = "Bad JSON format: mandatory attribute '$name' is missing.";
 
-            $this->printResponse(WS_CODE_REQUIRED, $msg);
+            $this->printResponseErr(WS_CODE_REQUIRED, $msg);
         }
     }
 
@@ -132,7 +141,7 @@ class JSONRequestParser {
 
             // check auth methods depending on version
             if($version != "1" && $version != "2c" && $version != "3") {
-                $this->printResponse(WS_CODE_BAD_VALUE, "Bad JSON value: '$version' for 'snmpAttr->auth->level' not recognized, not in " .
+                $this->printResponseErr(WS_CODE_BAD_VALUE, "Bad JSON value: '$version' for 'snmpAttr->auth->level' not recognized, not in " .
                     "<1, 2c, 3>.");
             }
             if($version == "1" || $version == "2c") {
@@ -152,7 +161,7 @@ class JSONRequestParser {
 
                 // check auth methods depending on level
                 if($authLevel != "authpriv" && $authLevel != "authnopriv") {
-                    $this->printResponse(WS_CODE_BAD_VALUE, "Bad JSON value: '$authLevel' for 'snmpAttr->auth->level' not recognized, not in" .
+                    $this->printResponseErr(WS_CODE_BAD_VALUE, "Bad JSON value: '$authLevel' for 'snmpAttr->auth->level' not recognized, not in" .
                         " <authPriv, authNoPriv>.");
                 }
                 if($authLevel == "authpriv") {
@@ -212,7 +221,7 @@ class JSONRequestParser {
             } else {
                 $roles = PS_ROLE_PUBLIC."=public, ".PS_ROLE_PRIVATE ."=private";
                 $msg = "Bad JSON value: '" . $roleId . "' for 'ps_role_id' parameter, not in (".$roles.").";
-                $this->printResponse(WS_CODE_BAD_VALUE, $msg);
+                $this->printResponseErr(WS_CODE_BAD_VALUE, $msg);
             }
         } else {
             return PS_ROLE_PRIVATE;
@@ -244,7 +253,7 @@ class JSONRequestParser {
      */
     private function checkArgs($args, $name) {
         if($args && !empty($args) && !is_array($args)) {
-            $this->printResponse(WS_CODE_BAD_VALUE, "Bad JSON value: '$args' for '$name' is not an array.");
+            $this->printResponseErr(WS_CODE_BAD_VALUE, "Bad JSON value: '$args' for '$name' is not an array.");
         }
     }
 
@@ -256,7 +265,7 @@ class JSONRequestParser {
      */
     private function checkPort($port, $default, $name) {
         if($port && !empty($port) && !is_int($port)) {
-            $this->printResponse(WS_CODE_BAD_VALUE, "Bad JSON value: '$port' for '$name' is not an integer.");
+            $this->printResponseErr(WS_CODE_BAD_VALUE, "Bad JSON value: '$port' for '$name' is not an integer.");
         }
         if(!$port || empty($port)) {
             return $default;
@@ -276,7 +285,7 @@ class JSONRequestParser {
      */
     private function checkProto($proto, $default, $first, $second) {
         if($proto && !empty($proto) && $proto != $first && $proto != $second) {
-            $this->printResponse(WS_CODE_BAD_VALUE, "Bad JSON value: '$proto' for 'snmpAttr->auth->authProto' not recognized, not in" .
+            $this->printResponseErr(WS_CODE_BAD_VALUE, "Bad JSON value: '$proto' for 'snmpAttr->auth->authProto' not recognized, not in" .
                 " <" . strtoupper($first) . ", " . strtoupper($second) . ">.");
         }
         if(!$proto || empty($proto)) {
@@ -303,11 +312,11 @@ class JSONRequestParser {
             }
         } else {
             $msg = "Failed load protocol types from db";
-            $this->printResponse(WS_CODE_BAD_VALUE, $msg);
+            $this->printResponseErr(WS_CODE_BAD_VALUE, $msg);
         }
 
         if($e >= SUPPORTED_PROTOCOLS) {
-            $this->printResponse(WS_CODE_BAD_VALUE,
+            $this->printResponseErr(WS_CODE_BAD_VALUE,
                 "Bad JSON value: '$this->protocol_type' for"
                 ." 'protocol->type' not recognized <snmp, ssh>.");
         }
