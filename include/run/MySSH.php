@@ -19,6 +19,12 @@ class MySSH {
     private $response;
     const REMOTE_FILE = 'remote.ext';
 
+    /**
+     * @param String $address
+     * @param String $login
+     * @param String $password
+     * @param int $port
+     */
     function __construct($address, $login, $password, $port)
     {
         set_include_path( LIB_PATH . '/phpseclib/');
@@ -33,12 +39,16 @@ class MySSH {
         $this->response = new Response();
     }
 
+    /**
+     * @param String $local_file path to local cache file
+     * @return Response
+     */
     public function executeScript($local_file) {
         // connect
         $this->ssh = new Net_SSH2($this->address, $this->port, SSH_TIMEOUT);
         if (!$this->ssh->login($this->login, $this->password)) {
             $msg = 'Login to remote host device failed.';
-            $this->response->setCmd($msg, SSH_ERR_LOGIN_CODE);
+            $this->response->setWs(SSH_ERR_LOGIN_CODE, $msg, true);
             return $this->response;
         }
 
@@ -46,33 +56,33 @@ class MySSH {
         $this->sftp = new Net_SFTP($this->address, $this->port, SSH_TIMEOUT);
         if (!$this->sftp->login($this->login, $this->password)) {
             $msg = 'Login to remote host device failed.';
-            $this->response->setCmd($msg, SSH_ERR_LOGIN_CODE);
+            $this->response->setWs(SSH_ERR_LOGIN_CODE, $msg, true);
             return $this->response;
         }
 
         // copy file
         if(!$this->sftp->put(MySSH::REMOTE_FILE, $local_file, NET_SFTP_LOCAL_FILE)){
             $msg = 'Copying script to remote file failed.';
-            $this->response->setCmd($msg, SSH_ERR_COPY_CODE);
+            $this->response->setWs(SSH_ERR_COPY_CODE, $msg, true);
             return $this->response;
         }
 
         // get outputs
-        $mixedOut = $this->ssh->exec('chmod +x '.MySSH::REMOTE_FILE.' && ./'.MySSH::REMOTE_FILE);
+        $scriptOutput = $this->ssh->exec('chmod +x '.MySSH::REMOTE_FILE.' && ./'.MySSH::REMOTE_FILE);
         $exitCode= $this->ssh->getExitStatus();
+        $this->response->setCmd($scriptOutput, $exitCode);
 
         // clean up
         if(!$this->sftp->delete(MySSH::REMOTE_FILE)) {
             $msg = "Removing temp file '".MySSH::REMOTE_FILE."' failed.";
-            $mixedOut .=  '\n'.$msg;
+            $this->response->setWs(SSH_WARN_REMOVE_CODE, $msg, false);
         }
 
         // close channels
-        $this->ssh->reset();
-        $this->sftp->reset();
+//        $this->ssh->reset();
+//        $this->sftp->reset();
 
-        $this->response->setCmd($mixedOut, $exitCode);
-
+        return $this->response;
     }
 
 

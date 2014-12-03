@@ -1,5 +1,4 @@
 <?php
-
 /**
  * This file greatly extends tutorial mentioned below
  *
@@ -23,7 +22,7 @@ require '.././libs/Slim/Slim.php';
 
 $app = new \Slim\Slim();
 
-// User id from db - Global Variable
+// Global Variables
 $user_id = NULL;
 $user_role_id = NULL;
 

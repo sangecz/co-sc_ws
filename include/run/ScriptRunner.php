@@ -23,7 +23,7 @@ class ScriptRunner {
         require_once APP_PATH . '/resp/Response.php';
         require_once APP_PATH . '/resp/Responder.php';
         require_once APP_PATH . '/parsers/CommandResponseParser.php';
-        require_once 'Command.php';
+        require_once 'MySSH.php';
         $this->response = new Response();
         $this->script = $script;
         $this->protocol = $protocol;
@@ -32,14 +32,11 @@ class ScriptRunner {
     public function process() {
         $this->checkDependencies();
 
-        // TODO construct run
-        $command = $this->constructCommand();
+        $this->runScript();
 
-        // TODO run & parse response
-        $partialResponse = $this->execute($command);
+        $this->respond();
 
-
-        $this->respond($partialResponse);
+//        $partialResponse = $this->execute($command);
 
     }
 
@@ -47,20 +44,17 @@ class ScriptRunner {
      * --------------------- RESPOND TO COMMAND's RESPONSE ----------------
      */
 
-    /**
-     * @param Response $resp
-     */
-    private function respond($resp){
+    private function respond(){
         if(DEBUG == 1) {
             echo "FINAL_RESP::\n";
-            var_dump($resp);
+            var_dump($this->response);
         }
 
-        if($resp->getWs()['error']) {
-            Responder::echoResponse(400, $resp);
+        if($this->response->getWs() != NULL) {
+            Responder::echoResponse(400, $this->response);
         }
-        $resp->setWs(WS_CODE_OK, "Script run successfully", false);
-        Responder::echoResponse(200, $resp);
+        $this->response->setWs(WS_CODE_OK, "Script run successfully", false);
+        Responder::echoResponse(200, $this->response);
     }
 
     /**
@@ -68,47 +62,74 @@ class ScriptRunner {
      */
 
 
-    private function execute($cmd) {
-
-        if(DEBUG == 1) {
-            echo "COMMAND:\n".$cmd."\n";
-        }
-
-        $returned = shell_exec($cmd);
-
-        if(DEBUG == 1) {
-            echo "RETURNED:\n**".$returned."**\n";
-        }
-
-        $respParser = new CommandResponseParser($this->protocol->getType());
-        $returnedAltered = $respParser->parse($returned);
-
-        $exitCode = $respParser->getResponse()->getExitCode();
-        // return check (odd and even fenomenon: try again)
-        if($exitCode == 2) {
-            $returned = shell_exec($cmd);
-            $returnedAltered = $respParser->parse($returned);
-        }
-
-        $respParser->handleExitCode($returnedAltered);
-
-        return $respParser->getResponse();
-    }
+//    private function execute($cmd) {
+//
+//        if(DEBUG == 1) {
+//            echo "COMMAND:\n".$cmd."\n";
+//        }
+//
+//        $returned = shell_exec($cmd);
+//
+//        if(DEBUG == 1) {
+//            echo "RETURNED:\n**".$returned."**\n";
+//        }
+//
+//        $respParser = new CommandResponseParser($this->protocol->getType());
+//        $returnedAltered = $respParser->parse($returned);
+//
+//        $exitCode = $respParser->getResponse()->getExitCode();
+//        // return check (odd and even fenomenon: try again)
+//        if($exitCode == 2) {
+//            $returned = shell_exec($cmd);
+//            $returnedAltered = $respParser->parse($returned);
+//        }
+//
+//        $respParser->handleExitCode($returnedAltered);
+//
+//        return $respParser->getResponse();
+//    }
     /**
-     * ------------------------- CONSTRACT COMMAND ---------------------
+     * ------------------------- RUN SCRIPT ---------------------
      */
-    private function constructCommand() {
-        $cmd = NULL;
+    private function runScript() {
+
 
         if($this->protocol->getType() == SSH_STR) {
-            $cmd = new SSHCommand($this->script, $this->protocol);
+
+            // first prepare TEMP_FILE
+            $this->prepareTmpFile();
+
+            $decrypted = PassHash::decrypt($this->protocol->getPasswd());
+            $passwd = (empty($decrypted)) ? "dummy_string_to_fail" : $decrypted;
+            $addr = $this->script->getAddress();
+            $login = $this->protocol->getLogin();
+            $port = $this->protocol->getPort();
+
+            // construct ssh connection
+            $myssh = new MySSH($addr, $login, $passwd, $port);
+            // execute script and get response
+            $this->response = $myssh->executeScript(TEMP_FILE_PATH);
+
         }
-        if($this->protocol->getType() == SNMP_STR) {
-            $cmd = new SNMPCommand($this->script, $this->protocol);
+//        if($this->protocol->getType() == SNMP_STR) {
+//            $cmd = new SNMPCommand($this->script, $this->protocol);
+//        }
+    }
+
+    private function prepareTmpFile () {
+        $myfile = fopen(TEMP_FILE_PATH, "w");
+        if($myfile == FALSE) {
+            $this->response->setWs(WS_CODE_EXECUTE_ERR, "Could not open temp file, contact WS administrator.", true);
         }
 
-        $cmd->constructCmd();
-        return $cmd->getExecString();
+        $txt = $this->script->getContent();
+        fwrite($myfile, $txt);
+
+        fclose($myfile);
+
+        if($this->response->getWs()['error']) {
+            Responder::echoResponse(500, $this->response);
+        }
     }
 
 
@@ -168,14 +189,14 @@ class ScriptRunner {
         }
     }
 
-    // TODO
-    private function checkSSHTunnelRequirements() {
-        // first check SSH req.
-        checkSSHRequirements();
-        // check if socat is available
-        $ret = shell_exec("socat -h >/dev/null ; echo $?");
-        if($ret != 0) {
-            prepareExit("Required program 'socat' is missing. Try to install it first.", 3);
-        }
-    }
+    // TODO tunnel
+//    private function checkSSHTunnelRequirements() {
+//        // first check SSH req.
+//        checkSSHRequirements();
+//        // check if socat is available
+//        $ret = shell_exec("socat -h >/dev/null ; echo $?");
+//        if($ret != 0) {
+//            prepareExit("Required program 'socat' is missing. Try to install it first.", 3);
+//        }
+//    }
 }
