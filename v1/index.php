@@ -74,7 +74,7 @@ function authenticate(\Slim\Route $route) {
  * method - POST
  * params - name, email, password
  */
-$app->post('/register', function() use ($app) {
+$app->post('/register/', function() use ($app) {
             // check for required params
             verifyRequiredParams(array('name', 'email', 'password'));
 
@@ -111,7 +111,7 @@ $app->post('/register', function() use ($app) {
  * method - POST
  * params - email, password
  */
-$app->post('/login', function() use ($app) {
+$app->post('/login/', function() use ($app) {
             // check for required params
             verifyRequiredParams(array('email', 'password'));
 
@@ -165,7 +165,7 @@ $app->post('/login', function() use ($app) {
  * method GET
  * url /protocols
  */
-$app->get('/protocols', 'authenticate', function() {
+$app->get('/protocols/', 'authenticate', function() {
     global $user_id;
     $db = new DbHandler();
 
@@ -232,7 +232,7 @@ $app->get('/protocols', 'authenticate', function() {
  * method GET
  * url /scripts
  */
-$app->get('/scripts', 'authenticate', function() {
+$app->get('/scripts/', 'authenticate', function() {
     global $user_id;
     $db = new DbHandler();
 
@@ -278,10 +278,10 @@ $app->get('/scripts', 'authenticate', function() {
 /**
  * Listing single script of particual user
  * method GET
- * url /scripts/:id
+ * url /scripts/:id/
  * Will return 404 if the script doesn't belongs to user
  */
-$app->get('/scripts/:id', 'authenticate', function($script_id) {
+$app->get('/scripts/:id/', 'authenticate', function($script_id) {
     global $user_id;
     $response = array();
     $db = new DbHandler();
@@ -328,7 +328,7 @@ $app->get('/scripts/:id', 'authenticate', function($script_id) {
  * method POST
  * url /protocols
  */
-$app->post('/protocols', 'authenticate', function() use ($app) {
+$app->post('/protocols/', 'authenticate', function() use ($app) {
     global $user_role_id;
     checkHasRightCUD($user_role_id);
 
@@ -365,7 +365,7 @@ $app->post('/protocols', 'authenticate', function() use ($app) {
  * method POST
  * url /scripts
  */
-$app->post('/scripts', 'authenticate', function() use ($app) {
+$app->post('/scripts/', 'authenticate', function() use ($app) {
     global $user_role_id;
     checkHasRightCUD($user_role_id);
 
@@ -407,9 +407,9 @@ $app->post('/scripts', 'authenticate', function() use ($app) {
  * Updating existing protocol
  * method PUT
  * params protocol
- * url - /protocols/:id
+ * url - /protocols/:id/
  */
-$app->put('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
+$app->put('/protocols/:id/', 'authenticate', function($protocol_id) use($app) {
             global $user_role_id;
             checkHasRightCUD($user_role_id);
 
@@ -444,9 +444,9 @@ $app->put('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
  * Updating existing script
  * method PUT
  * params script
- * url - /scripts/:id
+ * url - /scripts/:id/
  */
-$app->put('/scripts/:id', 'authenticate', function($script_id) use($app) {
+$app->put('/scripts/:id/', 'authenticate', function($script_id) use($app) {
     global $user_role_id;
     checkHasRightCUD($user_role_id);
 
@@ -485,7 +485,7 @@ $app->put('/scripts/:id', 'authenticate', function($script_id) use($app) {
  * method DELETE
  * url /protocols
  */
-$app->delete('/protocols/:id', 'authenticate', function($protocol_id) use($app) {
+$app->delete('/protocols/:id/', 'authenticate', function($protocol_id) use($app) {
     global $user_id;
     global $user_role_id;
 
@@ -515,7 +515,7 @@ $app->delete('/protocols/:id', 'authenticate', function($protocol_id) use($app) 
  * method DELETE
  * url /scripts
  */
-$app->delete('/scripts/:id', 'authenticate', function($script_id) use($app) {
+$app->delete('/scripts/:id/', 'authenticate', function($script_id) use($app) {
     global $user_id;
     global $user_role_id;
 

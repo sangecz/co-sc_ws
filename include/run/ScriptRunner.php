@@ -158,12 +158,12 @@ class ScriptRunner {
 
     private function checkSSHDependency() {
         // check if sshpass is available
-        $ret = shell_exec("sshpass > /dev/null ; echo $?");
-        if($ret != 0) {
-            $msg = "Required program 'sshpass' is missing. Try to install it first.";
-            $this->response->setWs(WS_CODE_DEPENDENCY, $msg, true);
-            Responder::echoResponse(404, $this->response);
-        }
+//        $ret = shell_exec("sshpass > /dev/null ; echo $?");
+//        if($ret != 0) {
+//            $msg = "Required program 'sshpass' is missing. Try to install it first.";
+//            $this->response->setWs(WS_CODE_DEPENDENCY, $msg, true);
+//            Responder::echoResponse(404, $this->response);
+//        }
         // check if ssh is available
         $ret = shell_exec("ssh -V 2> /dev/null ; echo $?");
         if($ret != 0) {
