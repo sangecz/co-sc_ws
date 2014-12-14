@@ -34,60 +34,10 @@ class ScriptRunner {
 
         $this->runScript();
 
-        $this->respond();
-
-//        $partialResponse = $this->execute($command);
+        return $this->response;
 
     }
 
-    /**
-     * --------------------- RESPOND TO COMMAND's RESPONSE ----------------
-     */
-
-    private function respond(){
-        if(DEBUG == 1) {
-            echo "FINAL_RESP::\n";
-            var_dump($this->response);
-        }
-
-        if($this->response->getWs() != NULL) {
-            Responder::echoResponse(400, $this->response);
-        }
-        $this->response->setWs(WS_CODE_OK, "Script run successfully", false);
-        Responder::echoResponse(200, $this->response);
-    }
-
-    /**
-     * ------------------------- EXECUTE & PARSE COMMAND ------------------
-     */
-
-
-//    private function execute($cmd) {
-//
-//        if(DEBUG == 1) {
-//            echo "COMMAND:\n".$cmd."\n";
-//        }
-//
-//        $returned = shell_exec($cmd);
-//
-//        if(DEBUG == 1) {
-//            echo "RETURNED:\n**".$returned."**\n";
-//        }
-//
-//        $respParser = new CommandResponseParser($this->protocol->getType());
-//        $returnedAltered = $respParser->parse($returned);
-//
-//        $exitCode = $respParser->getResponse()->getExitCode();
-//        // return check (odd and even fenomenon: try again)
-//        if($exitCode == 2) {
-//            $returned = shell_exec($cmd);
-//            $returnedAltered = $respParser->parse($returned);
-//        }
-//
-//        $respParser->handleExitCode($returnedAltered);
-//
-//        return $respParser->getResponse();
-//    }
     /**
      * ------------------------- RUN SCRIPT ---------------------
      */

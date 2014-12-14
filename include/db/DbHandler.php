@@ -336,15 +336,22 @@ class DbHandler {
      * @param String $script_id id of the script
      * @return Script
      */
-    public function getScript($script_id, $user_id) {
-        $sql = "SELECT s.* "
-              ." FROM scripts s, user_script us "
-              ." WHERE s.id = ? "
-              ." AND us.script_id = s.id AND us.user_id = ?";
+    public function getScript($script_id, $user_id, $user_role_id){
+        if ($user_role_id == USER_ROLE_ADMIN) {
+            $sql = 'SELECT * FROM scripts';
+        } else {
+            $sql = 'SELECT DISTINCT s . * '
+                .'FROM scripts s, user_script us '
+                .'WHERE s.id = us.script_id AND s.id = ? '
+                .'AND ( us.user_id = ? OR s.ps_role_id = ? )';
+        }
 
 
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $script_id, $user_id);
+        if ($user_role_id != USER_ROLE_ADMIN) {
+            $p = PS_ROLE_PUBLIC;
+            $stmt->bind_param("iii", $script_id, $user_id, $p);
+        }
         if ($stmt->execute()) {
 
             $id = "";
@@ -403,12 +410,11 @@ class DbHandler {
         }
     }
 
-
     /**
      * Fetching all protocols
      */
     public function getAllProtocols() {
-        $stmt = $this->conn->prepare("SELECT * FROM protocols");
+        $stmt = $this->conn->prepare("SELECT * FROM protocols ORDER BY  created_at DESC");
         $stmt->execute();
         $protocols = $stmt->get_result();
         $stmt->close();
@@ -419,11 +425,11 @@ class DbHandler {
      * Fetching all scripts
      */
     public function getAllScripts() {
-        $stmt = $this->conn->prepare("SELECT * FROM scripts");
+        $stmt = $this->conn->prepare("SELECT * FROM scripts ORDER BY  created_at DESC");
         $stmt->execute();
-        $protocols = $stmt->get_result();
+        $scripts = $stmt->get_result();
         $stmt->close();
-        return $protocols;
+        return $scripts;
     }
 
     /**
@@ -431,7 +437,7 @@ class DbHandler {
      */
     public function getAllUserPublicProtocols($user_id) {
         $sql = "SELECT DISTINCT p.* FROM protocols p, user_protocol up WHERE p.ps_role_id = ? "
-             . "OR (p.id = up.protocol_id AND up.user_id = ? )";
+             . "OR (p.id = up.protocol_id AND up.user_id = ? ) ORDER BY  created_at DESC";
         $stmt = $this->conn->prepare($sql);
         $p = PS_ROLE_PUBLIC;
         $stmt->bind_param("ii", $p, $user_id);
@@ -442,11 +448,11 @@ class DbHandler {
     }
 
     /**
-     * Fetching all public or user's protocols
+     * Fetching all public or user's scripts
      */
     public function getAllUserPublicScripts($user_id) {
         $sql = "SELECT DISTINCT s.* FROM scripts s, user_script us WHERE s.ps_role_id = ? "
-            . "OR (s.id = us.script_id AND us.user_id = ? )";
+            . "OR (s.id = us.script_id AND us.user_id = ? ) ORDER BY  created_at DESC";
         $stmt = $this->conn->prepare($sql);
         $p = PS_ROLE_PUBLIC;
         $stmt->bind_param("ii", $p, $user_id);
@@ -465,7 +471,7 @@ class DbHandler {
 
     public function updateProtocol($user_id, $user_role_id, $protocol_id, $protocol) {
         if($user_role_id != USER_ROLE_ADMIN) {
-            $resp = $this->isProtocolAccessible($user_id, $protocol_id);
+            $resp = $this->isProtocolWritable($user_id, $protocol_id);
             if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
         }
 //
@@ -520,18 +526,19 @@ class DbHandler {
 
     public function updateScript($user_id, $user_role_id, $script_id, $script) {
         if($user_role_id != USER_ROLE_ADMIN) {
-            $resp = $this->isScriptAccessible($user_id, $script_id);
+            $resp = $this->isScriptWritable($user_id, $script_id);
             if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
 
-            $resp = $this->isProtocolAccessible($user_id, $script->getProtocolId());
+            $resp = $this->isProtocolWritable($user_id, $script->getProtocolId());
             if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
 
         }
 
-        $sql = 'UPDATE scripts s, user_script us '
-            .'SET s.name = ?, s.description = ?, s.ps_role_id = ?, '
-            .'s.content = ?, s.address = ?, s.protocol_id = ? '
-            .'WHERE s.id = ? AND s.id = us.script_id AND us.user_id = ?';
+        $sql = "UPDATE scripts s, user_script us "
+            ."SET s.name = ?, s.description = ?, s.ps_role_id = ?, "
+            ."s.content = ?, s.address = ?, s.protocol_id = ? "
+            ."WHERE s.id = ? AND s.id = us.script_id AND us.user_id = ?";
+
 
         if ($stmt = $this->conn->prepare($sql)) {
             $name = $script->getName();
@@ -540,9 +547,16 @@ class DbHandler {
             $content = $script->getContent();
             $address = $script->getAddress();
             $protocol_id = $script->getProtocolId();
+//            echo 'UPDATE scripts s, user_script us '
+//                .'SET s.name = '.$name.', s.description = '.$description.', s.ps_role_id = '.$ps_role_id.', '
+//                .'s.content = '.$content.', s.address = '.$address.', s.protocol_id = '.$protocol_id.' '
+//                .'WHERE s.id = '.$script_id.' AND s.id = us.script_id AND us.user_id = '.$user_id;
             try {
-                $stmt->bind_param("ssissiii", $name, $description, $ps_role_id, $content, $address, $protocol_id,
-                    $script_id, $user_id);
+                if($stmt->bind_param("ssissiii", $name, $description, $ps_role_id, $content, $address, $protocol_id,
+                    $script_id, $user_id)) {
+                } else {
+                    printf("Errormessage2: %s\n", $this->conn->error);
+                }
 
             } catch (Exception $e) {
                 echo 'Caught exception: ',  $e->getMessage(), "\n";
@@ -563,36 +577,52 @@ class DbHandler {
      */
     public function deleteProtocol($user_id, $user_role_id, $protocol_id) {
         if($user_role_id != USER_ROLE_ADMIN) {
-            $resp = $this->isProtocolAccessible($user_id, $protocol_id);
+            $resp = $this->isProtocolWritable($user_id, $protocol_id);
             if ($resp->num_rows <= 0) {
                 return WS_CODE_REST_AUTH;
             }
         }
 
-        $sql =  "DELETE up \n"
-              . "FROM user_protocol up \n"
-              . "INNER JOIN protocols p \n"
-              . "ON p.id = up.protocol_id \n"
-              . "WHERE p.id = ? \n";
+        $sql =  "UPDATE scripts \n"
+              . "SET protocol_id = NULL \n"
+              . "WHERE protocol_id = ? \n";
 
         if ($stmt = $this->conn->prepare($sql)) {
             $stmt->bind_param("i", $protocol_id);
             $stmt->execute();
-            $num_affected_rows = $stmt->affected_rows;
+//            $num_affected_rows = $stmt->affected_rows;
             $stmt->close();
-            if($num_affected_rows > 0) {
-                $sql = "DELETE p FROM protocols p WHERE p.id = ?";
+
+            // continue anyway
+//            if($num_affected_rows > 0) {
+                $sql =  "DELETE up \n"
+                    . "FROM user_protocol up \n"
+                    . "INNER JOIN protocols p \n"
+                    . "ON p.id = up.protocol_id \n"
+                    . "WHERE p.id = ? \n";
+
                 if ($stmt = $this->conn->prepare($sql)) {
                     $stmt->bind_param("i", $protocol_id);
-                    $res = $stmt->execute();
-
+                    $stmt->execute();
+                    $num_affected_rows = $stmt->affected_rows;
                     $stmt->close();
-                    return $res;
-                }
+
+                    if($num_affected_rows > 0) {
+                        $sql = "DELETE p FROM protocols p WHERE p.id = ?";
+
+                        if ($stmt = $this->conn->prepare($sql)) {
+                            $stmt->bind_param("i", $protocol_id);
+                            $res = $stmt->execute();
+
+                            $stmt->close();
+                            return $res;
+                        }
 //                else {
 //                    printf("Errormessage2: %s\n", $this->conn->error);
 //                }
-            }
+                    }
+                }
+//            }
         }
     }
 
@@ -602,7 +632,7 @@ class DbHandler {
      */
     public function deleteScript($user_id, $user_role_id, $script_id) {
         if($user_role_id != USER_ROLE_ADMIN) {
-            $resp = $this->isScriptAccessible($user_id, $script_id);
+            $resp = $this->isScriptWritable($user_id, $script_id);
             if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
         }
 
@@ -664,6 +694,36 @@ class DbHandler {
         }
         $stmt->close();
         return $result;
+    }
+
+    /**
+     * Checks against malicious tries to alter DB data
+     */
+    public function isProtocolWritable($user_id, $protocol_id) {
+        $sql = "SELECT DISTINCT p.id FROM protocols p, user_protocol up "
+              ."WHERE p.id = up.protocol_id AND up.user_id = ? AND p.id = ?";
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param("ii", $user_id, $protocol_id);
+        $stmt->execute();
+        $protocols = $stmt->get_result();
+        $stmt->close();
+        return $protocols;
+    }
+
+    /**
+     * Checks against malicious tries to alter DB data
+     */
+    public function isScriptWritable($user_id, $script_id) {
+        $sql = "SELECT DISTINCT s.id FROM scripts s, user_script us "
+            ."WHERE s.id = us.script_id AND us.user_id = ? AND s.id = ?";
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param("ii", $user_id, $script_id);
+        $stmt->execute();
+        $protocols = $stmt->get_result();
+        $stmt->close();
+        return $protocols;
     }
 
     /**

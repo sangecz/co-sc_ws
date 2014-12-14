@@ -166,15 +166,15 @@ $app->post('/login/', function() use ($app) {
  * url /protocols
  */
 $app->get('/protocols/', 'authenticate', function() {
-    global $user_id;
+    global $user_id, $user_role_id;
     $db = new DbHandler();
 
     // fetching protocols
     $result = NULL;
-    if ($user_id == USER_ROLE_EXECUTOR || USER_ROLE_EDITOR) {
+    if ($user_role_id == USER_ROLE_EXECUTOR || $user_role_id == USER_ROLE_EDITOR) {
         $result = $db->getAllUserPublicProtocols($user_id);
     }
-    if ($user_id == USER_ROLE_ADMIN) {
+    if ($user_role_id == USER_ROLE_ADMIN) {
         $result = $db->getAllProtocols();
     }
 
@@ -201,19 +201,19 @@ $app->get('/protocols/', 'authenticate', function() {
                 $tmp['snmpAttr']['auth'] = array();
                 $tmp['snmpAttr']['auth']['level'] = $protocol['level'];
                 $tmp['snmpAttr']['auth']['login'] = $protocol['login'];
-                $tmp['snmpAttr']['auth']['authPasswd'] = $protocol['authPasswd'];
-                $tmp['snmpAttr']['auth']['privPasswd'] = $protocol['privPasswd'];
+                $tmp['snmpAttr']['auth']['authPasswd'] = PassHash::decrypt($protocol['authPasswd']);
+                $tmp['snmpAttr']['auth']['privPasswd'] = PassHash::decrypt($protocol['privPasswd']);
                 $tmp['snmpAttr']['auth']['privProto'] = $protocol['privProto'];
                 $tmp['snmpAttr']['auth']['authProto'] = $protocol['authProto'];
                 $tmp['snmpAttr']['auth']['community'] = $protocol['community'];
             }
-            if($tmp["type"] == SNMP_STR) {
+            if($tmp["type"] == SSH_STR) {
                 $tmp['sshAttr'] = array();
                 $tmp['sshAttr']['port'] = $protocol['port'];
                 $tmp['sshAttr']['sshArgs'] = $protocol['sshArgs'];
                 $tmp['sshAttr']['auth'] = array();
                 $tmp['sshAttr']['auth']['login'] = $protocol['login'];
-                $tmp['sshAttr']['auth']['passwd'] = $protocol['passwd'];
+                $tmp['sshAttr']['auth']['passwd'] = PassHash::decrypt($protocol['passwd']);
             }
             array_push($data["protocols"], $tmp);
         }
@@ -233,15 +233,15 @@ $app->get('/protocols/', 'authenticate', function() {
  * url /scripts
  */
 $app->get('/scripts/', 'authenticate', function() {
-    global $user_id;
+    global $user_id, $user_role_id;
     $db = new DbHandler();
 
     // fetching scripts
     $result = NULL;
-    if ($user_id == USER_ROLE_EXECUTOR || USER_ROLE_EDITOR) {
+    if ($user_role_id == USER_ROLE_EXECUTOR || $user_role_id == USER_ROLE_EDITOR) {
         $result = $db->getAllUserPublicScripts($user_id);
     }
-    if ($user_id == USER_ROLE_ADMIN) {
+    if ($user_role_id == USER_ROLE_ADMIN) {
         $result = $db->getAllScripts();
     }
 
@@ -282,13 +282,13 @@ $app->get('/scripts/', 'authenticate', function() {
  * Will return 404 if the script doesn't belongs to user
  */
 $app->get('/scripts/:id/', 'authenticate', function($script_id) {
-    global $user_id;
+    global $user_id, $user_role_id;
     $response = array();
     $db = new DbHandler();
 
     $response = new Response();
 
-    $script = $db->getScript($script_id, $user_id);
+    $script = $db->getScript($script_id, $user_id, $user_role_id);
 
 
     if($script == NULL) {
@@ -297,8 +297,8 @@ $app->get('/scripts/:id/', 'authenticate', function($script_id) {
         Responder::echoResponse(404, $response);
     }
 
-    $msg = "Script successfully run.";
-    $response->setWs(WS_CODE_OK, $msg,false);
+//    $msg = "Script successfully run.";
+//    $response->setWs(WS_CODE_OK, $msg,false);
     $data = array();
     $data['script'] = $script->getArray();
 
@@ -309,14 +309,23 @@ $app->get('/scripts/:id/', 'authenticate', function($script_id) {
         Responder::echoResponse(404, $response);
     }
 
-    $data['protocol'] = $protocol->getArray();
+//    $data['protocol'] = $protocol->getArray();
 
-    // TODO trida ScriptRunner
+    // run script and get response
     $scriptRunner = new ScriptRunner($script, $protocol);
-    $scriptRunner->process();
+    $response = $scriptRunner->process();
 
-    // TODO pokud skonci uspesne skrypt tak zalogovat
-//    $db->logExecuted..
+    // process response
+    if(DEBUG == 1) {
+        echo "FINAL_RESP::\n";
+        var_dump($this->response);
+    }
+
+    if($response->getWs() != NULL) {
+        Responder::echoResponse(400, $response);
+    }
+    $response->setWs(WS_CODE_OK, "Script run successfully", false);
+    Responder::echoResponse(200, $response);
 });
 
 /*

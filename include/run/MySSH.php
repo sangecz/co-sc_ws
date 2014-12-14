@@ -17,7 +17,7 @@ class MySSH {
     private $login;
 
     private $response;
-    const REMOTE_FILE = 'remote.ext';
+    const REMOTE_FILE = 'remote.script';
 
     /**
      * @param String $address
@@ -47,7 +47,7 @@ class MySSH {
         // connect
         $this->ssh = new Net_SSH2($this->address, $this->port, SSH_TIMEOUT);
         if (!$this->ssh->login($this->login, $this->password)) {
-            $msg = 'Login to remote host device failed.';
+            $msg = 'Login to remote host device failed.||a='.$this->address."|port=".$this->port."|l=".$this->login."|p=".$this->password;
             $this->response->setWs(SSH_ERR_LOGIN_CODE, $msg, true);
             return $this->response;
         }
@@ -68,15 +68,15 @@ class MySSH {
         }
 
         // get outputs
-        $scriptOutput = $this->ssh->exec('chmod +x '.MySSH::REMOTE_FILE.' && ./'.MySSH::REMOTE_FILE);
+        $scriptOutput = $this->ssh->exec('chmod +x '.MySSH::REMOTE_FILE.' && ./'.MySSH::REMOTE_FILE.' && rm -r '.MySSH::REMOTE_FILE);
         $exitCode= $this->ssh->getExitStatus();
         $this->response->setCmd($scriptOutput, $exitCode);
 
         // clean up
-        if(!$this->sftp->delete(MySSH::REMOTE_FILE)) {
-            $msg = "Removing temp file '".MySSH::REMOTE_FILE."' failed.";
-            $this->response->setWs(SSH_WARN_REMOVE_CODE, $msg, false);
-        }
+//        if(!$this->sftp->delete(MySSH::REMOTE_FILE)) {
+//            $msg = "Removing temp file '".MySSH::REMOTE_FILE."' failed.";
+//            $this->response->setWs(SSH_WARN_REMOVE_CODE, $msg, false);
+//        }
 
         // close channels
 //        $this->ssh->reset();

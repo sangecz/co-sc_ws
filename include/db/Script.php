@@ -63,7 +63,7 @@ class Script {
      */
     public function getDbId()
     {
-        return $this->db_id;
+        return intval($this->db_id);
     }
 
     /**
@@ -143,7 +143,7 @@ class Script {
      */
     public function getProtocolId()
     {
-        return $this->protocol_id;
+        return intval($this->protocol_id);
     }
 
     /**
@@ -159,7 +159,7 @@ class Script {
      */
     public function getPsRoleId()
     {
-        return $this->ps_role_id;
+        return intval($this->ps_role_id);
     }
 
     /**

@@ -64,7 +64,7 @@ class JSONRequestParser {
         if(strpos(trim($content), "#!/") !== FALSE) {
             $this->retScript->setContent($content);
         } else {
-            $msg = "The content of the script should contain hashbang, e.g. '#!/bin/bash'.";
+            $msg = "The content of the script should start with hashbang.";
             $this->printResponseErr(WS_CODE_REQUIRED, $msg);
         }
     }
@@ -128,6 +128,10 @@ class JSONRequestParser {
         }
         // check snmp mandatory attrs and possible combinations depending on version and auth level
         if($this->retProtocol->getType() == SNMP_STR) {
+            // print error yet
+            $msg = "Sorry. SNMP is not supported yet.";
+            $this->printResponseErr(WS_CODE_DEPENDENCY, $msg);
+
             $this->checkMandatoryAttribute(array_key_exists("snmpAttr", $protocol), "snmpAttr");
             $snmpAttr = $protocol->snmpAttr;
 
@@ -215,12 +219,12 @@ class JSONRequestParser {
     private function checkRole($protocol) {
         if(array_key_exists("ps_role_id", $protocol)){
             $roleArr = array(PS_ROLE_PRIVATE, PS_ROLE_PUBLIC);
-            $roleId = $protocol->ps_role_id;
-            if(is_int($roleId) && in_array($roleId, $roleArr)) {
+            $roleId = intval($protocol->ps_role_id);
+            if($roleId != 0 && in_array($roleId, $roleArr)) {
                 return $roleId;
             } else {
                 $roles = PS_ROLE_PUBLIC."=public, ".PS_ROLE_PRIVATE ."=private";
-                $msg = "Bad JSON value: '" . $roleId . "' for 'ps_role_id' parameter, not in (".$roles.").";
+                $msg = "Bad JSON value: '" . $roleId . "' for 'ps_role_id' parameter, not an integer or not in (".$roles.").";
                 $this->printResponseErr(WS_CODE_BAD_VALUE, $msg);
             }
         } else {
@@ -264,7 +268,8 @@ class JSONRequestParser {
      * @param int $name default port
      */
     private function checkPort($port, $default, $name) {
-        if($port && !empty($port) && !is_int($port)) {
+        $port = intval($port);
+        if($port && !empty($port) && $port == 0) {
             $this->printResponseErr(WS_CODE_BAD_VALUE, "Bad JSON value: '$port' for '$name' is not an integer.");
         }
         if(!$port || empty($port)) {
