@@ -6,8 +6,7 @@
  * @link URL Tutorial link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
  */
 
-// TODO support more HTTP response codes: http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-// TODO distinguish  between auth and non existence in return messages
+//TODO
 
 require_once '../include/db/DbHandler.php';
 require_once '../Config.php';
@@ -20,7 +19,9 @@ require '.././libs/Slim/Slim.php';
 
 \Slim\Slim::registerAutoloader();
 
-$app = new \Slim\Slim();
+$app = new \Slim\Slim(array(
+    'mode' => 'production'
+));
 
 // Global Variables
 $user_id = NULL;
@@ -655,7 +656,8 @@ function checkHasRightCUD($userRoleId){
         $response = new Response();
         $msg = "You don't have rights to issue this operation.";
         $response->setWs(WS_CODE_REST_AUTH, $msg, true);
-        Responder::echoResponse(400, $response);
+        Responder::echoResponse(401, $response);
+        $app->stop();
     }
 }
 
@@ -663,9 +665,9 @@ function handleAuthOrNonExistError(){
     $app = \Slim\Slim::getInstance();
 
     $response = new Response();
-    $msg = "You don't have sufficient rights to do this operation or script/protocol is not accessible.";
+    $msg = "You don't have sufficient rights to do this operation.";
     $response->setWs(WS_CODE_REST_AUTH, $msg, true);
-    Responder::echoResponse(200, $response);
+    Responder::echoResponse(401, $response);
 
     $app->stop();
 }

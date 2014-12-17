@@ -47,7 +47,7 @@ class MySSH {
         // connect
         $this->ssh = new Net_SSH2($this->address, $this->port, SSH_TIMEOUT);
         if (!$this->ssh->login($this->login, $this->password)) {
-            $msg = 'Login to remote host device failed.||a='.$this->address."|port=".$this->port."|l=".$this->login."|p=".$this->password;
+            $msg = 'Login to remote host device failed.' ;
             $this->response->setWs(SSH_ERR_LOGIN_CODE, $msg, true);
             return $this->response;
         }

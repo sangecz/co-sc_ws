@@ -308,11 +308,12 @@ class JSONRequestParser {
         $db = new DbHandler();
         $result = $db->getAllProtocolTypes();
 
-        $e = 0;
+        $sup = 0;
         if ($result != NULL) {
             while ($r = $result->fetch_assoc()) {
-                if($this->retProtocol->getType() != trim(strtolower($r['type']))) {
-                    $e++;
+                if($this->retProtocol->getType() == trim(strtolower($r['type']))) {
+                    $sup++;
+                    break;
                 }
             }
         } else {
@@ -320,9 +321,9 @@ class JSONRequestParser {
             $this->printResponseErr(WS_CODE_BAD_VALUE, $msg);
         }
 
-        if($e >= SUPPORTED_PROTOCOLS) {
+        if($sup == 0) {
             $this->printResponseErr(WS_CODE_BAD_VALUE,
-                "Bad JSON value: '$this->protocol_type' for"
+                "Bad JSON value: '".$this->retProtocol->getType()."' for"
                 ." 'protocol->type' not recognized <snmp, ssh>.");
         }
     }
