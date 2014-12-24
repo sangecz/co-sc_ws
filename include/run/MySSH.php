@@ -68,7 +68,12 @@ class MySSH {
         }
 
         // get outputs
-        $scriptOutput = $this->ssh->exec('chmod +x '.MySSH::REMOTE_FILE.' && ./'.MySSH::REMOTE_FILE.' && rm -r '.MySSH::REMOTE_FILE);
+        $execStr = 'chmod +x '.MySSH::REMOTE_FILE.' && '.
+                   'nohup ./'.MySSH::REMOTE_FILE.' >out 2>/dev/null </dev/null ; '.
+                   'cat out 2>/dev/null && '.
+                   'rm -r out 2>/dev/null &&'.
+                   'rm -r '.MySSH::REMOTE_FILE.' 2>/dev/null';
+        $scriptOutput = $this->ssh->exec($execStr);
         $exitCode= $this->ssh->getExitStatus();
         $this->response->setCmd($scriptOutput, $exitCode);
 

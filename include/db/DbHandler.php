@@ -338,7 +338,7 @@ class DbHandler {
      */
     public function getScript($script_id, $user_id, $user_role_id){
         if ($user_role_id == USER_ROLE_ADMIN) {
-            $sql = 'SELECT * FROM scripts';
+            $sql = 'SELECT * FROM scripts s WHERE s.id = ?';
         } else {
             $sql = 'SELECT DISTINCT s . * '
                 .'FROM scripts s, user_script us '
@@ -346,12 +346,15 @@ class DbHandler {
                 .'AND ( us.user_id = ? OR s.ps_role_id = ? )';
         }
 
-
         $stmt = $this->conn->prepare($sql);
-        if ($user_role_id != USER_ROLE_ADMIN) {
+
+        if ($user_role_id == USER_ROLE_ADMIN) {
+            $stmt->bind_param("i", $script_id);
+        } else {
             $p = PS_ROLE_PUBLIC;
             $stmt->bind_param("iii", $script_id, $user_id, $p);
         }
+
         if ($stmt->execute()) {
 
             $id = "";
