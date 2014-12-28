@@ -1,30 +1,108 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: sange
- * Date: 11/26/14
- * Time: 12:31 AM
- */
 
+/**
+ * Class Protocol is a container for JSON object Protocol. It provides setters and getters for its
+ * class members (Protocol attributes). It stores both SSH and SNMP.
+ *
+ * auth = SNMP authentication,
+ *
+ * priv = SNMP encryption
+ *
+ * @author Petr Marek
+ * @license Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
+ */
 class Protocol {
 
+    /**
+     * @var string name
+     */
     private $name;
+
+    /**
+     * @var string description
+     */
     private $desc;
+
+    /**
+     * @var int SNMP (default=161) or SSH (default=22) port number
+     */
     private $port;
+
+    /**
+     * @var string SNMP version [1 | 2c | 3]
+     */
     private $version;
+
+    /**
+     * @var string additional SSH arguments
+     */
     private $sshArgs;
+
+    /**
+     * @var string SNMP auth level [noAuthNoPriv | authNoPriv | authPriv];
+     *
+     * noAuthNoPriv: for SNMPv1 and SNMPv2c - no security, only community string;
+     *
+     * authNoPriv: for SNMPv3 auth proto available - authentication;
+     *
+     * authPriv: for SNMPv3 auth proto and priv proto available - authentication and encryption
+     */
     private $level;
+
+    /**
+     * @var string SNMP or SSH login
+     */
     private $login;
+
+    /**
+     * @var string SSH password
+     */
     private $passwd;
+
+    /**
+     * @var string SNMP priv password
+     */
     private $privPasswd;
+
+    /**
+     * @var string SNMP auth password
+     */
     private $authPasswd;
+
+    /**
+     * @var string auth proto [AES|DES] default=AES
+     */
     private $authProto;
+
+    /**
+     * @var string priv proto [MD5|SHA] default=SHA
+     */
     private $privProto;
+
+    /**
+     * @var string SNMPv1 and SNMPv2c community
+     */
     private $community;
+
+    /**
+     * @var string [SNMP|SSH]
+     */
     private $type;
+
+    /**
+     * @var int protocol-script role-visibility [1 | 2] (public=1, private 2)
+     */
     private $role;
+
+    /**
+     * @var int DB row id
+     */
     private $db_id;
 
+
+    /**
+     * Sets every class member to an empty string.
+     */
     function __construct()
     {
         $this->authPasswd = "";
@@ -46,6 +124,8 @@ class Protocol {
     }
 
     /**
+     * Helper method - constructor. Arguments matches class members.
+     *
      * @param $id
      * @param $name
      * @param $description
@@ -155,6 +235,8 @@ class Protocol {
     }
 
     /**
+     * Encrypts SNMP auth password
+     *
      * @param string $authPasswd
      */
     public function setAuthPasswd($authPasswd)
@@ -267,6 +349,8 @@ class Protocol {
     }
 
     /**
+     *  Encrypts SSH password
+     *
      * @param string $passwd
      */
     public function setPasswd($passwd)
@@ -299,6 +383,8 @@ class Protocol {
     }
 
     /**
+     *  Encrypts SNMP priv password
+     *
      * @param string $privPasswd
      */
     public function setPrivPasswd($privPasswd)

@@ -1,7 +1,2 @@
-#!/usr/bin/python
-
-import os
-import socket
-
-print(os.getloadavg())
-print(socket.gethostname())
+ #!/bin/bash 
+ echo $(date) > /var/log/co-sc_test.log

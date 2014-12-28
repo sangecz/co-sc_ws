@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta charset="utf-8"/>
+    <title>     &raquo; Compilation errors
+</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+    <link href="../css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/prism.css" rel="stylesheet" media="all"/>
+    <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+    <!--[if lt IE 9]>
+    <script src="../js/html5.js"></script>
+    <![endif]-->
+    <script src="../js/jquery-1.11.0.min.js"></script>
+    <script src="../js/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery.smooth-scroll.js"></script>
+    <script src="../js/prism.min.js"></script>
+    <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
+    
+    <link rel="shortcut icon" href="../images/favicon.ico"/>
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="../images/apple-touch-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="../images/apple-touch-icon-114x114.png"/>
+</head>
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <i class="icon-ellipsis-vertical"></i>
+            </a>
+            <a class="brand" href="../index.html">Corrective-Scripts</a>
+
+            <div class="nav-collapse">
+                <ul class="nav pull-right">
+                                        <li class="dropdown" id="charts-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Charts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../graphs/class.html">
+                                    <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown" id="reports-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Reports <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../reports/errors.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">141</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/markers.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <i class="icon-list-alt"></i>&#160;Markers <span class="label label-info pull-right">7</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/deprecated.html">
+                                                                                                            <i class="icon-list-alt"></i>&#160;Deprecated <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--<div class="go_to_top">-->
+    <!--<a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>-->
+    <!--</div>-->
+</div>
+
+<div id="___" class="container-fluid">
+        <section class="row-fluid">
+        <div class="span2 sidebar">
+
+            <ul class="side-nav nav nav-list">
+                <li class="nav-header">Navigation</li>
+                                                                            <li><a href="#include/parsers/JSONRequestParser.php"><i class="icon-file"></i> include/parsers/JSONRequestParser.php</a></li>
+                                                                                                    <li><a href="#include/parsers/CommandResponseParser.php"><i class="icon-file"></i> include/parsers/CommandResponseParser.php</a></li>
+                                                                                                    <li><a href="#include/resp/Responder.php"><i class="icon-file"></i> include/resp/Responder.php</a></li>
+                                                                                                    <li><a href="#include/resp/Response.php"><i class="icon-file"></i> include/resp/Response.php</a></li>
+                                                                                                    <li><a href="#include/db/DbHandler.php"><i class="icon-file"></i> include/db/DbHandler.php</a></li>
+                                                                                                    <li><a href="#include/db/Script.php"><i class="icon-file"></i> include/db/Script.php</a></li>
+                                                                                                    <li><a href="#include/db/DbConnect.php"><i class="icon-file"></i> include/db/DbConnect.php</a></li>
+                                                                                                    <li><a href="#include/db/Protocol.php"><i class="icon-file"></i> include/db/Protocol.php</a></li>
+                                                                                                    <li><a href="#include/db/PassHash.php"><i class="icon-file"></i> include/db/PassHash.php</a></li>
+                                                                                                    <li><a href="#include/run/MySSH.php"><i class="icon-file"></i> include/run/MySSH.php</a></li>
+                                                                                                    <li><a href="#include/run/ScriptRunner.php"><i class="icon-file"></i> include/run/ScriptRunner.php</a></li>
+                                                                                                    <li><a href="#v1/index.php"><i class="icon-file"></i> v1/index.php</a></li>
+                                                                                                                            </ul>
+        </div>
+
+        <div class="span10 offset2">
+            <ul class="breadcrumb">
+                <li><a href="../"><i class="icon-remove-sign"></i></a><span class="divider">\</span></li>
+                <li>Compilation Errors</li>
+            </ul>
+
+            
+                            <div class="package-contents">
+                                            <a name="include/parsers/JSONRequestParser.php" id="include/parsers/JSONRequestParser.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/parsers/JSONRequestParser.php
+                            <small style="float: right;padding-right: 10px;">14</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>59</td>
+                                        <td>Argument $script is missing from the Docblock of parseScript</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>79</td>
+                                        <td>Argument $content is missing from the Docblock of checkContent</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>79</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>94</td>
+                                        <td>Argument $protocol is missing from the Docblock of parseProtocol</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>104</td>
+                                        <td>Argument $wsCode is missing from the Docblock of printResponseErr</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>116</td>
+                                        <td>Argument $attr is missing from the Docblock of checkMandatoryAttribute</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>130</td>
+                                        <td>Argument $protocol is missing from the Docblock of checkProtocolMandatory</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>205</td>
+                                        <td>Argument $protocol is missing from the Docblock of checkProtocolOpt</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>242</td>
+                                        <td>Argument $protocol is missing from the Docblock of checkRole</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>264</td>
+                                        <td>Argument $argsArr is missing from the Docblock of getArgsFromArray</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>282</td>
+                                        <td>Argument $args is missing from the Docblock of checkArgs</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>296</td>
+                                        <td>Argument $port is missing from the Docblock of checkPort</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>320</td>
+                                        <td>Argument $proto is missing from the Docblock of checkProto</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/parsers/CommandResponseParser.php" id="include/parsers/CommandResponseParser.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/parsers/CommandResponseParser.php
+                            <small style="float: right;padding-right: 10px;">1</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/resp/Responder.php" id="include/resp/Responder.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/resp/Responder.php
+                            <small style="float: right;padding-right: 10px;">2</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>46</td>
+                                        <td>Argument $status_code is missing from the Docblock of echoResponse</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/resp/Response.php" id="include/resp/Response.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/resp/Response.php
+                            <small style="float: right;padding-right: 10px;">5</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>61</td>
+                                        <td>Argument $data is missing from the Docblock of setData</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>72</td>
+                                        <td>Argument $output is missing from the Docblock of setCmd</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>96</td>
+                                        <td>Argument $wsCode is missing from the Docblock of setWs</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>122</td>
+                                        <td>Argument $exitCode is missing from the Docblock of setExitCode</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/db/DbHandler.php" id="include/db/DbHandler.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/db/DbHandler.php
+                            <small style="float: right;padding-right: 10px;">28</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>38</td>
+                                        <td>Argument $name is missing from the Docblock of createUser</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>77</td>
+                                        <td>Argument $email is missing from the Docblock of checkLogin</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>117</td>
+                                        <td>Argument $email is missing from the Docblock of isUserExists</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>132</td>
+                                        <td>Argument $email is missing from the Docblock of getUserByEmail</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>157</td>
+                                        <td>Argument $user_id is missing from the Docblock of getApiKeyById</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>175</td>
+                                        <td>Argument $api_key is missing from the Docblock of getUserId</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>194</td>
+                                        <td>Argument $api_key is missing from the Docblock of getUserRoleId</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>213</td>
+                                        <td>Argument $api_key is missing from the Docblock of isValidApiKey</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>238</td>
+                                        <td>Argument $user_id is missing from the Docblock of createScript</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>238</td>
+                                        <td>The type hint of the argument is incorrect for the type definition of the @param tag with argument $user_role_id in createScript()</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>238</td>
+                                        <td>The type hint of the argument is incorrect for the type definition of the @param tag with argument $script in createScript()</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>291</td>
+                                        <td>Argument $user_id is missing from the Docblock of createProtocol</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>357</td>
+                                        <td>Argument $script_id is missing from the Docblock of getScript</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>406</td>
+                                        <td>Argument $protocol_id is missing from the Docblock of getProtocol</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>463</td>
+                                        <td>Argument $user_id is missing from the Docblock of getAllUserPublicProtocols</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>480</td>
+                                        <td>Argument $user_id is missing from the Docblock of getAllUserPublicScripts</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>501</td>
+                                        <td>Argument $user_id is missing from the Docblock of updateProtocol</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>557</td>
+                                        <td>Argument $user_id is missing from the Docblock of updateScript</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>557</td>
+                                        <td>Argument $script is missing from the Docblock of updateScript</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>611</td>
+                                        <td>Argument $user_id is missing from the Docblock of deleteProtocol</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>669</td>
+                                        <td>Argument $user_id is missing from the Docblock of deleteScript</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>706</td>
+                                        <td>Argument $user_id is missing from the Docblock of createUserProtocol</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>725</td>
+                                        <td>Argument $user_id is missing from the Docblock of createUserScript</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>743</td>
+                                        <td>Argument $user_id is missing from the Docblock of isProtocolWritable</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>761</td>
+                                        <td>Argument $user_id is missing from the Docblock of isScriptWritable</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>779</td>
+                                        <td>Argument $user_id is missing from the Docblock of isProtocolAccessible</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>797</td>
+                                        <td>Argument $user_id is missing from the Docblock of isScriptAccessible</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/db/Script.php" id="include/db/Script.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/db/Script.php
+                            <small style="float: right;padding-right: 10px;">24</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>65</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>81</td>
+                                        <td>Argument $id is missing from the Docblock of withAttributes</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>98</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>106</td>
+                                        <td>Argument $db_id is missing from the Docblock of setDbId</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>106</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>114</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>122</td>
+                                        <td>Argument $address is missing from the Docblock of setAddress</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>122</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>130</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>138</td>
+                                        <td>Argument $content is missing from the Docblock of setContent</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>138</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>146</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>154</td>
+                                        <td>Argument $description is missing from the Docblock of setDescription</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>154</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>162</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>170</td>
+                                        <td>Argument $name is missing from the Docblock of setName</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>170</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>178</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>186</td>
+                                        <td>Argument $protocol_id is missing from the Docblock of setProtocolId</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>186</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>194</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>202</td>
+                                        <td>Argument $ps_role_id is missing from the Docblock of setPsRoleId</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>202</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/db/DbConnect.php" id="include/db/DbConnect.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/db/DbConnect.php
+                            <small style="float: right;padding-right: 10px;">2</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>18</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/db/Protocol.php" id="include/db/Protocol.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/db/Protocol.php
+                            <small style="float: right;padding-right: 10px;">48</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>148</td>
+                                        <td>Argument $id is missing from the Docblock of withAttributes</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>175</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>183</td>
+                                        <td>Argument $db_id is missing from the Docblock of setDbId</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>183</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>191</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>199</td>
+                                        <td>Argument $role is missing from the Docblock of setRole</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>199</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>209</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>216</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>224</td>
+                                        <td>Argument $type is missing from the Docblock of setType</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>224</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>232</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>242</td>
+                                        <td>Argument $authPasswd is missing from the Docblock of setAuthPasswd</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>250</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>258</td>
+                                        <td>Argument $authProto is missing from the Docblock of setAuthProto</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>258</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>266</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>274</td>
+                                        <td>Argument $community is missing from the Docblock of setCommunity</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>274</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>282</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>290</td>
+                                        <td>Argument $desc is missing from the Docblock of setDesc</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>290</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>298</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>306</td>
+                                        <td>Argument $level is missing from the Docblock of setLevel</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>306</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>314</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>322</td>
+                                        <td>Argument $login is missing from the Docblock of setLogin</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>322</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>330</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>338</td>
+                                        <td>Argument $name is missing from the Docblock of setName</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>338</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>346</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>356</td>
+                                        <td>Argument $passwd is missing from the Docblock of setPasswd</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>364</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>372</td>
+                                        <td>Argument $port is missing from the Docblock of setPort</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>372</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>380</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>390</td>
+                                        <td>Argument $privPasswd is missing from the Docblock of setPrivPasswd</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>398</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>406</td>
+                                        <td>Argument $privProto is missing from the Docblock of setPrivProto</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>406</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>414</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>422</td>
+                                        <td>Argument $sshArgs is missing from the Docblock of setSshArgs</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>422</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>430</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>438</td>
+                                        <td>Argument $version is missing from the Docblock of setVersion</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>438</td>
+                                        <td>No summary for method &quot;&quot;</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/db/PassHash.php" id="include/db/PassHash.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/db/PassHash.php
+                            <small style="float: right;padding-right: 10px;">5</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>39</td>
+                                        <td>Argument $password is missing from the Docblock of hash</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>53</td>
+                                        <td>Argument $hash is missing from the Docblock of check_password</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>74</td>
+                                        <td>Argument $string is missing from the Docblock of encrypt</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>96</td>
+                                        <td>Argument $string is missing from the Docblock of decrypt</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/run/MySSH.php" id="include/run/MySSH.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/run/MySSH.php
+                            <small style="float: right;padding-right: 10px;">3</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>59</td>
+                                        <td>Argument $address is missing from the Docblock of __construct</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>80</td>
+                                        <td>Argument $local_file is missing from the Docblock of executeScript</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="include/run/ScriptRunner.php" id="include/run/ScriptRunner.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            include/run/ScriptRunner.php
+                            <small style="float: right;padding-right: 10px;">2</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>32</td>
+                                        <td>Argument $script is missing from the Docblock of __construct</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                            <a name="v1/index.php" id="v1/index.php"></a>
+                        <h3>
+                            <i class="icon-file"></i>
+                            v1/index.php
+                            <small style="float: right;padding-right: 10px;">7</small>
+                        </h3>
+                        <div>
+                            <table class="table markers table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Line</th>
+                                    <th>Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>0</td>
+                                        <td>No summary was found for this file</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>32</td>
+                                        <td>Argument $route is missing from the Docblock of authenticate</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>559</td>
+                                        <td>Argument $required_fields is missing from the Docblock of verifyRequiredParams</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>594</td>
+                                        <td>Argument $email is missing from the Docblock of validateEmail</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>610</td>
+                                        <td>Argument $protocolJSON is missing from the Docblock of processProtocol</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>631</td>
+                                        <td>Argument $scriptJSON is missing from the Docblock of processScript</td>
+                                    </tr>
+                                                                    <tr>
+                                        <td>error</td>
+                                        <td>653</td>
+                                        <td>Argument $userRoleId is missing from the Docblock of checkHasRightCUD</td>
+                                    </tr>
+                                                            </tbody>
+                            </table>
+                        </div>
+                                    </div>
+                            <div class="package-contents">
+                                    </div>
+                    </div>
+    </section>
+
+    <footer class="row-fluid">
+        <section class="span10 offset2">
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <section class="row-fluid footer-sections">
+                        <section class="span4">
+                                                        <h1><i class="icon-code"></i></h1>
+                            <div>
+                                <ul>
+                                                                    </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-bar-chart"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../graphs/class.html">Class Hierarchy Diagram</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-pushpin"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../reports/errors.html">Errors</a></li>
+                                    <li><a href="../reports/markers.html">Markers</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                    </section>
+                </section>
+            </section>
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <hr />
+                    Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
+                    on December 28th, 2014 at 14:00.
+                </section>
+            </section>
+        </section>
+    </footer>
+</div>
+
+</body>
+</html>

@@ -1,22 +1,35 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: sange
- * Date: 11/29/14
- * Time: 11:53 AM
+ * Class ScriptRunner checks dependencies, runs script via MySSH and returns response.
+ *
+ * @author Petr Marek
+ * @license Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
  */
 
 class ScriptRunner {
-
+    /**
+     * @var Response response for a client
+     */
     private $response;
+
+    /**
+     * @var Script script object
+     */
     private $script;
+
+    /**
+     * @var Protocol protocol object
+     */
     private $protocol;
 
     /**
+     * Sets $script, $protocol and $response objects with provided values. Includes required files.
+     *
      * @param $script Script
      * @param $protocol Protocol
      */
-    function __construct($script, $protocol)
+    public function __construct($script, $protocol)
     {
         require_once APP_PATH . '/db/Script.php';
         require_once APP_PATH . '/db/Protocol.php';
@@ -29,24 +42,28 @@ class ScriptRunner {
         $this->protocol = $protocol;
     }
 
+    /**
+     * Processes script and returns response.
+     *
+     * @return Response response of the script
+     */
     public function process() {
         $this->checkDependencies();
 
         $this->runScript();
 
         return $this->response;
-
     }
 
     /**
-     * ------------------------- RUN SCRIPT ---------------------
+     * Runs script. First it decrypts all passwords, prepares temp file for a script.
+     * Then it sets MySSH attributes. And finally it gathers response.
      */
     private function runScript() {
 
 
         if($this->protocol->getType() == SSH_STR) {
 
-            // first prepare TEMP_FILE
             $this->prepareTmpFile();
 
             $decrypted = PassHash::decrypt($this->protocol->getPasswd());
@@ -66,6 +83,10 @@ class ScriptRunner {
 //        }
     }
 
+    /**
+     * Prepares temporary file for script content to be copied to a remote device and executed.
+     * Web server must have write permissions for this file.
+     */
     private function prepareTmpFile () {
         $myfile = fopen(TEMP_FILE_PATH, "w");
         if($myfile == FALSE) {
@@ -84,11 +105,7 @@ class ScriptRunner {
 
 
     /**
-     * ----------------------- DEPENDENCIES ------------------------------
-     */
-
-    /**
-     * @param $protocol Protocol
+     * Checks dependencies: SSH and SNMP.
      */
     private function checkDependencies() {
         // check if function shell_exec is enabled
@@ -106,15 +123,10 @@ class ScriptRunner {
         }
     }
 
+    /**
+     * Checks if SSH is available.
+     */
     private function checkSSHDependency() {
-        // check if sshpass is available
-//        $ret = shell_exec("sshpass > /dev/null ; echo $?");
-//        if($ret != 0) {
-//            $msg = "Required program 'sshpass' is missing. Try to install it first.";
-//            $this->response->setWs(WS_CODE_DEPENDENCY, $msg, true);
-//            Responder::echoResponse(404, $this->response);
-//        }
-        // check if ssh is available
         $ret = shell_exec("ssh -V 2> /dev/null ; echo $?");
         if($ret != 0) {
             $msg = "Required program 'ssh' is missing. Try to install it first.";
@@ -123,6 +135,9 @@ class ScriptRunner {
         }
     }
 
+    /**
+     * Checks if snmpset and snmpgetnext are available for command execution through SNMP.
+     */
     private function checkSNMPDependency() {
         // check if snmp tools are available >> unknown command: retcode=127
         $ret = shell_exec("snmpset 2> /dev/null ; echo $?");
@@ -138,15 +153,4 @@ class ScriptRunner {
             Responder::echoResponse(404, $this->response);
         }
     }
-
-    // TODO tunnel
-//    private function checkSSHTunnelRequirements() {
-//        // first check SSH req.
-//        checkSSHRequirements();
-//        // check if socat is available
-//        $ret = shell_exec("socat -h >/dev/null ; echo $?");
-//        if($ret != 0) {
-//            prepareExit("Required program 'socat' is missing. Try to install it first.", 3);
-//        }
-//    }
 }

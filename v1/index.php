@@ -2,11 +2,9 @@
 /**
  * This file greatly extends tutorial mentioned below
  *
- * @author Petr Marek, Petr Marek
- * @link URL Tutorial link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
+ * @author Petr Marek, Ravi Tamada
+ * @link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
  */
-
-//TODO
 
 require_once '../include/db/DbHandler.php';
 require_once '../Config.php';
@@ -28,8 +26,8 @@ $user_id = NULL;
 $user_role_id = NULL;
 
 /**
- * Adding Middle Layer to authenticate every request
- * Checking if the request has valid api key in the 'Authorization' header
+ * Adding Middle Layer to authenticate every request. Checking if the request has
+ * valid apiKey in the 'Authorization' header.
  */
 function authenticate(\Slim\Route $route) {
     // Getting request headers
@@ -628,7 +626,7 @@ function processProtocol($protocolJSON) {
 /**
  * Parses and checks values of provided script
  * @param string $scriptJSON JSON string
- * @return Script
+ * @return Script processed Script
  */
 function processScript($scriptJSON) {
     $script = json_decode($scriptJSON);
@@ -647,20 +645,29 @@ function processScript($scriptJSON) {
 }
 
 /**
- * This shouldn't happen as soon as client uses REST api right
- * app shoudn't allow user's with these roles even proceed to this http method
- * @param $userRoleId
+ * This shouldn't happen as soon as client uses REST api right -
+ * app shoudn't allow user's with these roles even proceed to particular http method
+ * @param int $userRoleId user role DB id
+ * @throws \Slim\Exception\Stop
  */
 function checkHasRightCUD($userRoleId){
     if($userRoleId == USER_ROLE_NOBODY ||  $userRoleId == USER_ROLE_EXECUTOR){
+        $app = \Slim\Slim::getInstance();
+
         $response = new Response();
         $msg = "You don't have rights to issue this operation.";
         $response->setWs(WS_CODE_REST_AUTH, $msg, true);
         Responder::echoResponse(401, $response);
+
         $app->stop();
     }
 }
 
+/**
+ * Handles DB auth or non existent resource error. It prints error response and stops the app.
+ *
+ * @throws \Slim\Exception\Stop
+ */
 function handleAuthOrNonExistError(){
     $app = \Slim\Slim::getInstance();
 

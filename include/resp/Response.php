@@ -1,22 +1,38 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: sange
- * Date: 11/26/14
- * Time: 11:32 AM
- */
 
+/**
+ * Responder class responses via slim framework instance to a client.
+ * Response is JSON, It's a singleton.
+ *
+ * @author Petr Marek
+ * @license Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
+ */
 class Response {
 
+    /**
+     * @var JSON web service (application) part of response
+     */
     private $ws;
+
+    /**
+     * @var JSON data part of response
+     */
     private $data;
 
+    /**
+     * Constructor sets JSON parts of response to default: null.
+     */
     function __construct()
     {
         $this->ws = NULL;
         $this->data = NULL;
     }
 
+    /**
+     * Serializes Response - creates array even from private class members.
+     *
+     * @return array
+     */
     public function jsonSerialize()
     {
         $objectArray = [];
@@ -28,7 +44,9 @@ class Response {
     }
 
     /**
-     * @return null
+     * JSON Data getter.
+     *
+     * @return JSON|NULL
      */
     public function getData()
     {
@@ -36,7 +54,9 @@ class Response {
     }
 
     /**
-     * @param null $data
+     * JSON data setter.
+     *
+     * @param JSON $data
      */
     public function setData($data)
     {
@@ -44,7 +64,10 @@ class Response {
     }
 
     /**
-     * @param string $output
+     * Sets script output for a client.
+     *
+     * @param String $output Output message of the executed script
+     * @param int $exitCode exit code of the executed script
      */
     public function setCmd($output, $exitCode)
     {
@@ -54,6 +77,8 @@ class Response {
     }
 
     /**
+     * Getter of WS JSON part of response.
+     *
      * @return array
      */
     public function getWs()
@@ -62,9 +87,11 @@ class Response {
     }
 
     /**
-     * @param int $statusCode
-     * @param String $msg
-     * @param bool $err
+     * Setter of WS JSON part of response.
+     *
+     * @param int $wsCode Web service (app) exit code from Config.php
+     * @param String $msg Web service output message
+     * @param bool $err Web service error [true|false] for easier client app handling
      */
     public function setWs($wsCode, $msg, $err)
     {
@@ -74,6 +101,11 @@ class Response {
         $this->ws['error'] = $err;
     }
 
+    /**
+     * Returns exit code of the executed script, default=NULL
+     *
+     * @return int|NULL exit code of the executed script
+     */
     public function getExitCode(){
         if($this->data != NULL) {
             return $this->data['exitCode'];
@@ -83,7 +115,9 @@ class Response {
     }
 
     /**
-     * @param $statusCode
+     * Sets exit code of the executed script, default=NULL
+     *
+     * @param int $exitCode exit code of the executed script
      */
     public function setExitCode($exitCode){
         if($this->data == NULL) {

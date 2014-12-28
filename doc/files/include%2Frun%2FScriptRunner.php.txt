@@ -1,0 +1,156 @@
+<?php
+
+/**
+ * Class ScriptRunner checks dependencies, runs script via MySSH and returns response.
+ *
+ * @author Petr Marek
+ * @license Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
+ */
+
+class ScriptRunner {
+    /**
+     * @var Response response for a client
+     */
+    private $response;
+
+    /**
+     * @var Script script object
+     */
+    private $script;
+
+    /**
+     * @var Protocol protocol object
+     */
+    private $protocol;
+
+    /**
+     * Sets $script, $protocol and $response objects with provided values. Includes required files.
+     *
+     * @param $script Script
+     * @param $protocol Protocol
+     */
+    public function __construct($script, $protocol)
+    {
+        require_once APP_PATH . '/db/Script.php';
+        require_once APP_PATH . '/db/Protocol.php';
+        require_once APP_PATH . '/resp/Response.php';
+        require_once APP_PATH . '/resp/Responder.php';
+        require_once APP_PATH . '/parsers/CommandResponseParser.php';
+        require_once 'MySSH.php';
+        $this->response = new Response();
+        $this->script = $script;
+        $this->protocol = $protocol;
+    }
+
+    /**
+     * Processes script and returns response.
+     *
+     * @return Response response of the script
+     */
+    public function process() {
+        $this->checkDependencies();
+
+        $this->runScript();
+
+        return $this->response;
+    }
+
+    /**
+     * Runs script. First it decrypts all passwords, prepares temp file for a script.
+     * Then it sets MySSH attributes. And finally it gathers response.
+     */
+    private function runScript() {
+
+
+        if($this->protocol->getType() == SSH_STR) {
+
+            $this->prepareTmpFile();
+
+            $decrypted = PassHash::decrypt($this->protocol->getPasswd());
+            $passwd = (empty($decrypted)) ? "dummy_string_to_fail" : $decrypted;
+            $addr = $this->script->getAddress();
+            $login = $this->protocol->getLogin();
+            $port = $this->protocol->getPort();
+
+            // construct ssh connection
+            $myssh = new MySSH($addr, $login, $passwd, $port);
+            // execute script and get response
+            $this->response = $myssh->executeScript(TEMP_FILE_PATH);
+
+        }
+//        if($this->protocol->getType() == SNMP_STR) {
+//            $cmd = new SNMPCommand($this->script, $this->protocol);
+//        }
+    }
+
+    /**
+     * Prepares temporary file for script content to be copied to a remote device and executed.
+     * Web server must have write permissions for this file.
+     */
+    private function prepareTmpFile () {
+        $myfile = fopen(TEMP_FILE_PATH, "w");
+        if($myfile == FALSE) {
+            $this->response->setWs(WS_CODE_EXECUTE_ERR, "Could not open temp file, contact WS administrator.", true);
+        }
+
+        $txt = $this->script->getContent();
+        fwrite($myfile, $txt);
+
+        fclose($myfile);
+
+        if($this->response->getWs()['error']) {
+            Responder::echoResponse(500, $this->response);
+        }
+    }
+
+
+    /**
+     * Checks dependencies: SSH and SNMP.
+     */
+    private function checkDependencies() {
+        // check if function shell_exec is enabled
+        if(!function_exists('shell_exec')) {
+            $msg = "Required function 'shell_exec' is missing or not enabled.";
+            $this->response->setWs(WS_CODE_DEPENDENCY, $msg, true);
+            Responder::echoResponse(404, $this->response);
+        }
+
+        if($this->protocol->getType() == SSH_STR) {
+            $this->checkSSHDependency();
+        }
+        if($this->protocol->getType() == SNMP_STR) {
+            $this->checkSNMPDependency();
+        }
+    }
+
+    /**
+     * Checks if SSH is available.
+     */
+    private function checkSSHDependency() {
+        $ret = shell_exec("ssh -V 2> /dev/null ; echo $?");
+        if($ret != 0) {
+            $msg = "Required program 'ssh' is missing. Try to install it first.";
+            $this->response->setWs(WS_CODE_DEPENDENCY, $msg, true);
+            Responder::echoResponse(404, $this->response);
+        }
+    }
+
+    /**
+     * Checks if snmpset and snmpgetnext are available for command execution through SNMP.
+     */
+    private function checkSNMPDependency() {
+        // check if snmp tools are available >> unknown command: retcode=127
+        $ret = shell_exec("snmpset 2> /dev/null ; echo $?");
+        if($ret == 127) {
+            $msg = "Required program 'snmpset' is missing. Try to install it first.";
+            $this->response->setWs(WS_CODE_DEPENDENCY, $msg, true);
+            Responder::echoResponse(404, $this->response);
+        }
+        $ret = shell_exec("snmpgetnext 2> /dev/null ; echo $?");
+        if($ret == 127) {
+            $msg = "Required program 'snmpwalk' is missing. Try to install it first.";
+            $this->response->setWs(WS_CODE_DEPENDENCY, $msg, true);
+            Responder::echoResponse(404, $this->response);
+        }
+    }
+}

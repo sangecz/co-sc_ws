@@ -1,16 +1,27 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: sange
- * Date: 11/25/14
- * Time: 6:46 PM
- */
 
+/**
+ * Class JSONRequestParser parses Script and Protocol. When an error occurs,
+ * it responses where exactly error was encountered and what caused it.
+ *
+ * @author Petr Marek
+ * @license Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
+ */
 class JSONRequestParser {
 
+    /**
+     * @var Protocol protocol object to return
+     */
     private $retProtocol;
+
+    /**
+     * @var Script script object to return
+     */
     private $retScript;
 
+    /**
+     * Constructor includes required files and creates new instances of Protocol and Script.
+     */
     function __construct() {
         require_once  APP_PATH . '/db/DbHandler.php';
         require_once  APP_PATH . '/db/Protocol.php';
@@ -22,6 +33,8 @@ class JSONRequestParser {
     }
 
     /**
+     * Returns checked and altered (defaults when optionals not provided) protocol.
+     *
      * @return Protocol
      */
     public function getProtocol()
@@ -30,6 +43,7 @@ class JSONRequestParser {
     }
 
     /**
+     * Returns checked and altered (defaults when optionals not provided) script.
      * @return Script
      */
     public function getScript()
@@ -38,7 +52,9 @@ class JSONRequestParser {
     }
 
     /**
-     * @param $script JSON obj
+     * Checks mandatory and optional arguments of a provided JSON object.
+     *
+     * @param $script JSON object
      */
     public function parseScript($script) {
         //TODO
@@ -71,8 +87,9 @@ class JSONRequestParser {
 
 
     /**
+     * Checks mandatory and optional arguments of a provided JSON object.
+     *
      * @param $protocol Protocol
-     * @return Protocol cheched and altered (default vals if not set) Protocol
      */
     public function parseProtocol($protocol){
         $this->checkProtocolMandatory($protocol);
@@ -80,7 +97,7 @@ class JSONRequestParser {
     }
 
     /**
-     * Prints response
+     * Prints response in case of error.
      * @param int $wsCode
      * @param String $msg
      */
@@ -92,6 +109,7 @@ class JSONRequestParser {
 
     /**
      * Checks mandatory attribute
+     *
      * @param String $attr value of an attribute
      * @param String $name name of an attribute
      */
@@ -104,8 +122,10 @@ class JSONRequestParser {
     }
 
     /**
-     * Checks provided protocol
-     * @param Object $protocol Http JSON object
+     * Checks provided protocol mandatory arguments.
+     *
+     * @todo SNMP is not available yet
+     * @param Object $protocol JSON object
      */
     private function checkProtocolMandatory($protocol) {
 
@@ -178,8 +198,9 @@ class JSONRequestParser {
     }
 
     /**
-     * Checks provided protocol
-     * @param Object $protocol Http JSON object
+     * Checks provided protocol optional arguments.
+     *
+     * @param Protocol $protocol JSON object
      */
     private function checkProtocolOpt($protocol) {
         // determin role of protocol
@@ -213,7 +234,9 @@ class JSONRequestParser {
     }
 
     /**
-     * @param $protocol input protocol
+     * Checks protocol-script role-visibility.
+     *
+     * @param Protocol $protocol input protocol
      * @return int ps_role for protocol
      */
     private function checkRole($protocol) {
@@ -234,9 +257,10 @@ class JSONRequestParser {
 
     /**
      * Parses args array to string
-     * @param array $args args array
+     *
+     * @param array $argsArr argumentss array
+     * @return string args separated by space or empty string
      */
-
     private function getArgsFromArray($argsArr) {
         if (is_array($argsArr) && !empty($argsArr)) {
 
@@ -262,10 +286,12 @@ class JSONRequestParser {
     }
 
     /**
-     * Checks port
+     * Checks port number, if not valid, prints error response, if not provided returns default.
+     *
      * @param int $port port for protocol
      * @param String $default name of an attribute
      * @param int $name default port
+     * @return int port number
      */
     private function checkPort($port, $default, $name) {
         $port = intval($port);
@@ -282,11 +308,14 @@ class JSONRequestParser {
 
 
     /**
-     * Checks protos - snmp specific
+     * Checks proto - SNMP specific. If not valid, prints error response,
+     * if not provided returns default.
+     *
      * @param String $proto should be [authProto, privProto]
      * @param String $default default value of an attribute
      * @param String $first
      * @param String $second
+     * @return string priv or auth proto
      */
     private function checkProto($proto, $default, $first, $second) {
         if($proto && !empty($proto) && $proto != $first && $proto != $second) {
@@ -302,7 +331,7 @@ class JSONRequestParser {
     }
 
     /**
-     * Checks protocol type agains protocol types in db
+     * Checks protocol type against protocol types in DB
      */
     private function checkProtocolType() {
         $db = new DbHandler();

@@ -1,21 +1,53 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: sange
- * Date: 11/28/14
- * Time: 9:44 PM
- */
 
+/**
+ * Class Script is a container for JSON object Protocol. It provides setters and getters for its
+ * class members.
+ *
+ * @author Petr Marek
+ * @license Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
+ */
 class Script {
 
+    /**
+     * @var int protocol-script role-visibility [1 | 2] (public=1, private 2)
+     */
     private $ps_role_id;
+
+    /**
+     * @var string name
+     */
     private $name;
+
+    /**
+     * @var string description
+     */
     private $description;
+
+    /**
+     * @var string IP or FQDN address of remote device, where script is to be executed
+     */
     private $address;
+
+    /**
+     * @var string content of the actuall script to be executed, it must start
+     * with #!/path (hashbang-interpreter path) to execute with desired interpreter
+     */
     private $content;
+
+    /**
+     * @var int foreign key to Protocol (DB) which will be used to execute script
+     */
     private $protocol_id;
+
+    /**
+     * @var int DB id
+     */
     private $db_id;
 
+    /**
+     * Sets every class member to an empty string.
+     */
     function __construct()
     {
         $this->address = "";
@@ -35,6 +67,8 @@ class Script {
     }
 
     /**
+     * Helper method - constructor. Arguments matches class members.
+     *
      * @param $id
      * @param $ps_role_id
      * @param $name

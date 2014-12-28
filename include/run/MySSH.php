@@ -1,29 +1,60 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: sange
- * Date: 11/30/14
- * Time: 10:02 PM
+ * Class MySSH takes care of SSH and SFTP connections,
+ * which are needed for remote script execution.
+ *
+ * @author Petr Marek
+ * @license Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
  */
-
 class MySSH {
 
+    /**
+     * @var Net_SSH2 Class for SSH connection from library phpseclib
+     */
     private $ssh;
+
+    /**
+     * @var Net_SFTP Class for SSH connection from library phpseclib
+     */
     private  $sftp;
 
+    /**
+     * @var int remote device SSH port
+     */
     private $port;
+
+    /**
+     * @var String remote device IP or FQDN address
+     */
     private $address;
+
+    /**
+     * @var String remote device SSH password
+     */
     private $password;
+
+    /**
+     * @var String remote device SSH login
+     */
     private $login;
 
+    /**
+     * @var Response application response in JSON format.
+     */
     private $response;
+
+    /**
+     * Remote script name.
+     */
     const REMOTE_FILE = 'remote.script';
 
     /**
-     * @param String $address
-     * @param String $login
-     * @param String $password
-     * @param int $port
+     * Prepares class attributes for usage in executeScript method.
+     *
+     * @param String $address remote device IP or FQDN address
+     * @param String $login remote device SSH login
+     * @param String $password remote device SSP password
+     * @param int $port remote device SSH port
      */
     function __construct($address, $login, $password, $port)
     {
@@ -40,6 +71,9 @@ class MySSH {
     }
 
     /**
+     * Establish SSH and SFTP connections, copy a script to remote device and execute it,
+     * then remove it.
+     *
      * @param String $local_file path to local cache file
      * @return Response
      */
@@ -76,16 +110,6 @@ class MySSH {
         $scriptOutput = $this->ssh->exec($execStr);
         $exitCode= $this->ssh->getExitStatus();
         $this->response->setCmd($scriptOutput, $exitCode);
-
-        // clean up
-//        if(!$this->sftp->delete(MySSH::REMOTE_FILE)) {
-//            $msg = "Removing temp file '".MySSH::REMOTE_FILE."' failed.";
-//            $this->response->setWs(SSH_WARN_REMOVE_CODE, $msg, false);
-//        }
-
-        // close channels
-//        $this->ssh->reset();
-//        $this->sftp->reset();
 
         return $this->response;
     }

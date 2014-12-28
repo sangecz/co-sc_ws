@@ -1,16 +1,22 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: sange
- * Date: 11/26/14
- * Time: 11:28 AM
- */
 
 include_once dirname(__FILE__) . '/Response.php';
 
+/**
+ * Responder class responses via slim framework instance to a client. It's a singleton.
+ *
+ * @author Petr Marek
+ * @license Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
+ */
 class Responder {
 
 
+    /**
+     * Singleton method, returns instance of the class.
+     *
+     * @access public
+     * @return Responder
+     */
     public static function getInstance()
     {
         static $inst = null;
@@ -19,15 +25,23 @@ class Responder {
         }
         return $inst;
     }
+
+    /**
+     * Private constructor for usage in singleton pattern.
+     * @access private
+     */
     private function __construct()
     {
 
     }
 
     /**
-     * Echoing json response to client
-     * @param Int $status_code Http response code
-     * @param Response $response Json response
+     * Echoes JSON response to a client. If there was an error while processing,
+     * it stops the application by Slim framework stop method.
+     *
+     * @param int $status_code HTTP response code
+     * @param Response $response JSON response
+     * @access public
      */
     public static function echoResponse($status_code, $response) {
         $app = \Slim\Slim::getInstance();

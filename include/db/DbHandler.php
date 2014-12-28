@@ -1,15 +1,23 @@
 <?php
 
 /**
+ * Class DbHandler handles database operations.
+ *
  * This class greatly extends tutorial mentioned below
  *
- * @author Ravi Tamada, Petr Marek
- * @link URL Tutorial link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
+ * @author Petr Marek, Ravi Tamada
+ * @link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
  */
 class DbHandler {
 
+    /**
+     * @var mysqli instance
+     */
     private $conn;
 
+    /**
+     * Constructor includes required files and connects to DB.
+     */
     function __construct() {
         require_once dirname(__FILE__) . '/DbConnect.php';
         require_once dirname(__FILE__) . '/Protocol.php';
@@ -19,13 +27,13 @@ class DbHandler {
         $this->conn = $db->connect();
     }
 
-    /* ------------- `users` table method ------------------ */
 
     /**
-     * Creating new user
+     * Creating new user.
      * @param String $name User full name
      * @param String $email User login email id
      * @param String $password User login password
+     * @return int app exit code from Config.php
      */
     public function createUser($name, $email, $password) {
         require_once 'PassHash.php';
@@ -61,7 +69,7 @@ class DbHandler {
     }
 
     /**
-     * Checking user login
+     * Checking user login.
      * @param String $email User login email id
      * @param String $password User login password
      * @return boolean User login status success/fail
@@ -102,7 +110,7 @@ class DbHandler {
     }
 
     /**
-     * Checking for duplicate user by email address
+     * Checking for duplicate user by email address.
      * @param String $email email to check in db
      * @return boolean
      */
@@ -117,8 +125,9 @@ class DbHandler {
     }
 
     /**
-     * Fetching user by email
+     * Fetching user by email.
      * @param String $email User email id
+     * @return array|NULL user properties or NULL
      */
     public function getUserByEmail($email) {
         $stmt = $this->conn->prepare("SELECT name, email, api_key, created_at, user_role_id FROM users WHERE email = ?");
@@ -141,8 +150,9 @@ class DbHandler {
     }
 
     /**
-     * Fetching user api key
-     * @param String $user_id user id primary key in user table
+     * Fetching user apiKey by user id.
+     * @param int $user_id user id primary key in user table
+     * @return string|NULL apiKey or NULL
      */
     public function getApiKeyById($user_id) {
         $stmt = $this->conn->prepare("SELECT api_key FROM users WHERE id = ?");
@@ -158,8 +168,9 @@ class DbHandler {
     }
 
     /**
-     * Fetching user id by api key
-     * @param String $api_key user api key
+     * Fetching user id by apiKey.
+     * @param String $api_key user apiKey
+     * @return int|NULL user id or NULL
      */
     public function getUserId($api_key) {
         $stmt = $this->conn->prepare("SELECT id FROM users WHERE api_key = ?");
@@ -176,8 +187,9 @@ class DbHandler {
     }
 
     /**
-     * Fetching user role id by api key
-     * @param String $api_key user api key
+     * Fetching user role id by apiKey.
+     * @param String $api_key user apiKey
+     * @return int|NULL user role id or NULL
      */
     public function getUserRoleId($api_key) {
         $stmt = $this->conn->prepare("SELECT user_role_id FROM users WHERE api_key = ?");
@@ -194,9 +206,8 @@ class DbHandler {
     }
 
     /**
-     * Validating user api key
-     * If the api key is there in db, it is a valid key
-     * @param String $api_key user api key
+     * Validating user apiKey. If the apiKey is there in db, it is a valid key.
+     * @param String $api_key user apiKey
      * @return boolean
      */
     public function isValidApiKey($api_key) {
@@ -210,16 +221,19 @@ class DbHandler {
     }
 
     /**
-     * Generating random Unique MD5 String for user Api key
+     * Generating random Unique MD5 String for user apiKey.
+     * @return string md5 hash
      */
     private function generateApiKey() {
         return md5(uniqid(rand(), true));
     }
 
     /**
-     * Creating new script
-     * @param String $user_id user id to whom script belongs to
+     * Creating new script. If user role is not admin, check if protocol is accessible.
+     * @param int $user_id user id to whom script belongs to
      * @param Script $script obj
+     * @param int $user_role_id user role id from DB
+     * @return int|NULL new script id or NULL
      */
     public function createScript($user_id, $user_role_id, $script) {
 
@@ -269,10 +283,10 @@ class DbHandler {
     }
 
     /**
-     * Creating new protocol
+     * Creating new protocol.
      * @param int $user_id user id
-     * @param int $role_id default user_role id, could be overrided inside protocol creation request
      * @param Protocol $p protocol object
+     * @return int|NULL new protocol id or NULL
      */
     public function createProtocol($user_id, $p) {
 
@@ -324,7 +338,8 @@ class DbHandler {
     }
 
     /**
-     * Fetching all protocol types
+     * Fetching all protocol types.
+     * @return array protocol
      */
     public function getAllProtocolTypes() {
         $res = $this->conn->query("SELECT * FROM protocol_type");
@@ -332,9 +347,12 @@ class DbHandler {
     }
 
     /**
-     * Fetching single script
-     * @param String $script_id id of the script
-     * @return Script
+     * Fetching single script for execution on remote device. If user role is admin fetch any script.
+     * If user role is not admin fetch only user's scripts or public scripts.
+     * @param int $script_id id of the script
+     * @param int $user_id user id from DB
+     * @param int $user_role_id user role id from DB
+     * @return Script|NULL
      */
     public function getScript($script_id, $user_id, $user_role_id){
         if ($user_role_id == USER_ROLE_ADMIN) {
@@ -381,7 +399,7 @@ class DbHandler {
     }
 
     /**
-     * Fetching single protocol
+     * Fetching single protocol.
      * @param String $protocol_id id of the protocol
      * @return Protocol
      */
@@ -414,7 +432,8 @@ class DbHandler {
     }
 
     /**
-     * Fetching all protocols
+     * Fetching all protocols.
+     * @return array protocols
      */
     public function getAllProtocols() {
         $stmt = $this->conn->prepare("SELECT * FROM protocols ORDER BY  created_at DESC");
@@ -425,7 +444,8 @@ class DbHandler {
     }
 
     /**
-     * Fetching all scripts
+     * Fetching all scripts.
+     * @return array scripts
      */
     public function getAllScripts() {
         $stmt = $this->conn->prepare("SELECT * FROM scripts ORDER BY  created_at DESC");
@@ -436,7 +456,9 @@ class DbHandler {
     }
 
     /**
-     * Fetching all public or user's protocols
+     * Fetching all public or user's protocols.
+     * @param int $user_id user id from DB
+     * @return array protocols
      */
     public function getAllUserPublicProtocols($user_id) {
         $sql = "SELECT DISTINCT p.* FROM protocols p, user_protocol up WHERE p.ps_role_id = ? "
@@ -451,7 +473,9 @@ class DbHandler {
     }
 
     /**
-     * Fetching all public or user's scripts
+     * Fetching all public or user's scripts.
+     * @param int $user_id user id from DB
+     * @return array scripts
      */
     public function getAllUserPublicScripts($user_id) {
         $sql = "SELECT DISTINCT s.* FROM scripts s, user_script us WHERE s.ps_role_id = ? "
@@ -466,10 +490,12 @@ class DbHandler {
     }
 
     /**
-     * Updating protocol
-     * @param String $user_id
+     * Updating protocol.If user's role is not admin check if protocol is writable.
+     * @param String $user_id user id from DB
+     * @param String $user_role_id user's role id from DB
      * @param String $protocol_id id of the protocol
      * @param Protocol $protocol
+     * @return bool|int true if successful, int exit code
      */
 
     public function updateProtocol($user_id, $user_role_id, $protocol_id, $protocol) {
@@ -521,10 +547,11 @@ class DbHandler {
     }
 
     /**
-     * Updating script
-     * @param String $user_id
+     * Updating script. If user's role is not admin check if script is writable.
+     * @param String $user_id id of user
+     * @param String $user_role_id user's role id from DB
      * @param String $script_id id of the script
-     * @param Script $script
+     * @return bool|int true if successful, int exit code
      */
 
     public function updateScript($user_id, $user_role_id, $script_id, $script) {
@@ -575,8 +602,11 @@ class DbHandler {
     }
 
     /**
-     * Deleting a protocol
+     * Deleting a protocol. If user's role is not admin check if protocol is writable.
      * @param String $protocol_id id of the protocol to delete
+     * @param String $user_role_id user's role id from DB
+     * @param String $user_id id of user
+     * @return bool|int true if successful, int exit code
      */
     public function deleteProtocol($user_id, $user_role_id, $protocol_id) {
         if($user_role_id != USER_ROLE_ADMIN) {
@@ -630,8 +660,11 @@ class DbHandler {
     }
 
     /**
-     * Deleting a script
+     * Deleting a script. If user's role is not admin check if script is writable.
      * @param String $script_id id of the script to delete
+     * @param String $user_role_id user's role id from DB
+     * @param String $user_id id of user
+     * @return bool|int true if successful, int exit code
      */
     public function deleteScript($user_id, $user_role_id, $script_id) {
         if($user_role_id != USER_ROLE_ADMIN) {
@@ -664,9 +697,10 @@ class DbHandler {
     }
 
     /**
-     * Function to assign a protocol to user
+     * Helper method to assign a protocol to user.
      * @param String $user_id id of the user
      * @param String $protocol_id id of the protocol
+     * @return bool
      */
 
     public function createUserProtocol($user_id, $protocol_id) {
@@ -682,9 +716,10 @@ class DbHandler {
     }
 
     /**
-     * Function to assign a script to user
+     * Helper method to assign a script to user.
      * @param String $user_id id of the user
-     * @param String $protocol_id id of the protocol
+     * @param String $script_id id of the script
+     * @return bool
      */
 
     public function createUserScript($user_id, $script_id) {
@@ -701,6 +736,9 @@ class DbHandler {
 
     /**
      * Checks against malicious tries to alter DB data
+     * @param String $user_id id of the user
+     * @param String $protocol_id id of the protocol
+     * @return array protocols
      */
     public function isProtocolWritable($user_id, $protocol_id) {
         $sql = "SELECT DISTINCT p.id FROM protocols p, user_protocol up "
@@ -716,6 +754,9 @@ class DbHandler {
 
     /**
      * Checks against malicious tries to alter DB data
+     * @param String $user_id id of the user
+     * @param String $script_id id of the script
+     * @return array scripts
      */
     public function isScriptWritable($user_id, $script_id) {
         $sql = "SELECT DISTINCT s.id FROM scripts s, user_script us "
@@ -731,6 +772,9 @@ class DbHandler {
 
     /**
      * Checks against malicious tries to alter DB data
+     * @param String $user_id id of the user
+     * @param String $protocol_id id of the protocol
+     * @return array protocols
      */
     public function isProtocolAccessible($user_id, $protocol_id) {
         $sql = "SELECT DISTINCT p.id FROM protocols p, user_protocol up WHERE (p.ps_role_id = ? "
@@ -746,6 +790,9 @@ class DbHandler {
 
     /**
      * Checks against malicious tries to alter DB data
+     * @param String $user_id id of the user
+     * @param String $script_id id of the script
+     * @return array scripts
      */
     public function isScriptAccessible($user_id, $script_id) {
         $sql = "SELECT DISTINCT s.id FROM scripts s, user_script us WHERE (s.ps_role_id = ? "

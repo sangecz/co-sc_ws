@@ -1,0 +1,176 @@
+<?php
+/**
+ * THIS FILE MUST BE KEPT IN PRIVATE, IT CONTAINS PASSWORDS.
+ */
+
+
+/**
+ * Debug switch: 1=ON, 0=OFF.
+ */
+define('DEBUG', 0);
+
+/** Default local cache file.
+ *  Ensure it has right permissions (700 for tmp dir; 600 for file)
+ *  and right ownership (e.g. www-data when apache2 is http server).
+ */
+define('TEMP_FILE_PATH', $_SERVER['DOCUMENT_ROOT'] . '/co-sc/tmp/local.txt');
+
+/**
+ * Application folder. Path used for absolute includes.
+ */
+define('APP_PATH', $_SERVER['DOCUMENT_ROOT'] . '/co-sc/include');
+
+/**
+ * Library folder. Path used for absolute includes.
+ */
+define('LIB_PATH', $_SERVER['DOCUMENT_ROOT'] . '/co-sc/libs');
+
+/**
+ * Encryption configuration. SHOULD BE CHANGED BEFORE DEPLOYMENT AND KEPT IN SECRET.
+ */
+define('SECRET_KEY', "my_really_week_key");
+
+/**
+ * Encryption configuration. SHOULD BE CHANGED BEFORE DEPLOYMENT AND KEPT IN SECRET.
+ */
+define('SECRET_IV', "my_really_week_iv");
+
+/**
+ * Database username. CHANGE IT.
+ */
+define('DB_USERNAME', 'root');
+
+/**
+ * Database password. CHANGE IT.
+ */
+define('DB_PASSWORD', 'spring');
+
+/**
+ * Database host. CHANGE IT.
+ */
+define('DB_HOST', 'localhost');
+
+/**
+ * Database name. CHANGE IT.
+ */
+define('DB_NAME', 'co-sc');
+
+/**
+ * SNMP command output string placeholder "nsExtendOutputFull".
+ * @todo implement SNMP
+ */
+define('CMD_OUTPUT_STR',"nsExtendOutputFull");
+
+/**
+ * SNMP command output string placeholder "nsExtendResult".
+ * @todo implement SNMP
+ */
+define('CMD_RESULT_STR', "nsExtendResult");
+
+/**
+ * Timeout for SSH and SFTP connection.
+ */
+define('SSH_TIMEOUT', 10);
+
+/**
+ * Default SNMP priProto (AES).
+ * @todo implement SNMP
+ */
+define('DEFAULT_PRIVPROTO', "AES");
+
+/**
+ * Default SNMP authProto (SHA).
+ * @todo implement SNMP
+ */
+define('DEFAULT_AUTHPROTO', "SHA");
+
+/**
+ * Default SSH port 22.
+ */
+define('DEFAULT_SSH_PORT', 22);
+
+/**
+ * Default SNMP port 161
+ * @todo implement SNMP
+ */
+define('DEFAULT_SNMP_PORT', 161);
+
+/**
+ * SNMP string.
+ * MUST match with DB values/
+ */
+define('SNMP_STR', "snmp");
+
+/**
+ * SSH string.
+ * MUST match with DB values/
+ */
+define('SSH_STR', "ssh");
+
+/**
+ * Editor user role.
+ * MUST match with DB values/
+ */
+define('USER_ROLE_EDITOR', 1);
+
+/**
+ * Executor user role.
+ * MUST match with DB values/
+ */
+define('USER_ROLE_EXECUTOR', 2);
+
+/**
+ * NOBODY user role, no role actually assigned yet.
+ * MUST match with DB values/
+ */
+define('USER_ROLE_NOBODY', 3);
+
+/**
+ * Admin user role.
+ * MUST match with DB values/
+ */
+define('USER_ROLE_ADMIN', 4);
+
+/**
+ * Public protocol-script role-visibility.
+ * MUST match with DB values/
+ */
+define('PS_ROLE_PUBLIC', 1);
+
+/**
+ * Private protocol-script role-visibility.
+ * MUST match with DB values/
+ */
+define('PS_ROLE_PRIVATE', 2);
+
+define('USER_CREATED_SUCCESSFULLY', 0);
+define('USER_CREATE_FAILED', 1);
+define('USER_ALREADY_EXISTED', 2);
+
+define('WS_CODE_OK', 0);
+define('WS_CODE_DEPENDENCY', 1);
+define('WS_CODE_JSON_SYNTAX', 2);
+define('WS_CODE_REQUIRED', 3);
+define('WS_CODE_BAD_VALUE', 4);
+define('WS_CODE_EXECUTE_ERR', 6);
+
+define('WS_CODE_REST_ERR', 10);
+define('WS_CODE_REST_LOGIN', 11);
+define('WS_CODE_REST_AUTH', 12);
+define('WS_CODE_REST_REGISTER', 13);
+define('WS_CODE_REST_DB', 14);
+define('WS_CODE_REST_UPDATE', 15);
+define('WS_CODE_DB_NONEXIST', 16);
+
+/**
+ * SSH error when logging to remote device.
+ */
+define('SSH_ERR_LOGIN_CODE', 255);
+
+/**
+ * SSH error when copying script to remote device.
+ */
+define('SSH_ERR_COPY_CODE', 254);
+
+?>
+

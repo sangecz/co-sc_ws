@@ -2,24 +2,28 @@
 
 /**
  * Handling database connection
- * This class greatly extends tutorial mentioned below
  *
- * @author Ravi Tamada, Petr Marek
- * @link URL Tutorial link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
+ * This class extends tutorial mentioned below.
+ *
+ * @author Petr Marek, Ravi Tamada
+ * @link http://www.androidhive.info/2014/01/how-to-create-rest-api-for-android-app-using-php-slim-and-mysql-day-12-2/
  */
 class DbConnect {
 
+    /**
+     * @var mysqli connection instance
+     */
     private $conn;
 
-    function __construct() {        
+    public function __construct() {
     }
 
     /**
-     * Establishing database connection
-     * @internal param app $path path
-     * @return database connection handler
+     * Establishing database connection, constants for DB connection are from Config.php
+     *
+     * @return mysqli connection instance
      */
-    function connect() {
+    public function connect() {
 
         include_once $_SERVER['DOCUMENT_ROOT'] . '/co-sc/Config.php';
 
