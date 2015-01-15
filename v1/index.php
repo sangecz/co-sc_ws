@@ -381,14 +381,14 @@ $app->post('/scripts/', 'authenticate', function() use ($app) {
     verifyRequiredParams(array('script'));
 
     $scriptJSON = $app->request->post('script');
-    $protocolObj = processScript($scriptJSON);
+    $scriptObj = processScript($scriptJSON);
 
     global $user_id;
     $db = new DbHandler();
     $response = new Response();
 
     // creating new script
-    $script_id = $db->createScript($user_id, $user_role_id, $protocolObj);
+    $script_id = $db->createScript($user_id, $user_role_id, $scriptObj);
 
     if ($script_id != NULL) {
         if($script_id === WS_CODE_REST_AUTH){

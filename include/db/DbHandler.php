@@ -502,14 +502,23 @@ class DbHandler {
         if($user_role_id != USER_ROLE_ADMIN) {
             $resp = $this->isProtocolWritable($user_id, $protocol_id);
             if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
+
+            $sql = 'UPDATE protocols p, user_protocol up '
+                .'SET p.name = ?, p.description = ?, p.ps_role_id = ?, p.port = ?, '
+                .'p.version = ?, p.sshArgs = ?, p.level = ?, p.passwd = ?, '
+                .'p.login = ?, p.authPasswd = ?, p.privPasswd = ?, p.privProto = ?, '
+                .'p.authProto = ?, p.community = ?, p.protocol_type_id = ? '
+                .'WHERE p.id = ? AND p.id = up.protocol_id AND up.user_id = ?';
+        } else {
+            $sql = 'UPDATE protocols p, user_protocol up '
+                .'SET p.name = ?, p.description = ?, p.ps_role_id = ?, p.port = ?, '
+                .'p.version = ?, p.sshArgs = ?, p.level = ?, p.passwd = ?, '
+                .'p.login = ?, p.authPasswd = ?, p.privPasswd = ?, p.privProto = ?, '
+                .'p.authProto = ?, p.community = ?, p.protocol_type_id = ? '
+                .'WHERE p.id = ?';
         }
 //
-        $sql = 'UPDATE protocols p, user_protocol up '
-              .'SET p.name = ?, p.description = ?, p.ps_role_id = ?, p.port = ?, '
-              .'p.version = ?, p.sshArgs = ?, p.level = ?, p.passwd = ?, '
-              .'p.login = ?, p.authPasswd = ?, p.privPasswd = ?, p.privProto = ?, '
-              .'p.authProto = ?, p.community = ?, p.protocol_type_id = ? '
-              .'WHERE p.id = ? AND p.id = up.protocol_id AND up.user_id = ?';
+
 
         if ($stmt = $this->conn->prepare($sql)) {
             $name = $protocol->getName();
@@ -531,10 +540,17 @@ class DbHandler {
 
 
             try {
-                $stmt->bind_param("ssiisssssssssssii", $name, $description, $ps_role_id, $port , $version, $sshArgs,
-                    $level,  $passwd, $login,
-                    $authPasswd,$privPasswd,$privProto,
-                    $authProto,$community,$protocol_type_id, $protocol_id, $user_id);
+                if($user_role_id != USER_ROLE_ADMIN) {
+                    $stmt->bind_param("ssiisssssssssssii", $name, $description, $ps_role_id, $port, $version, $sshArgs,
+                        $level, $passwd, $login,
+                        $authPasswd, $privPasswd, $privProto,
+                        $authProto, $community, $protocol_type_id, $protocol_id, $user_id);
+                } else {
+                    $stmt->bind_param("ssiisssssssssssi", $name, $description, $ps_role_id, $port, $version, $sshArgs,
+                        $level, $passwd, $login,
+                        $authPasswd, $privPasswd, $privProto,
+                        $authProto, $community, $protocol_type_id, $protocol_id);
+                }
             } catch (Exception $e) {
                 echo 'Caught exception: ',  $e->getMessage(), "\n";
             }
@@ -559,16 +575,19 @@ class DbHandler {
             $resp = $this->isScriptWritable($user_id, $script_id);
             if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
 
-            $resp = $this->isProtocolWritable($user_id, $script->getProtocolId());
-            if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
+//            $resp = $this->isProtocolWritable($user_id, $script->getProtocolId());
+//            if ($resp->num_rows <= 0) return WS_CODE_REST_AUTH;
 
+            $sql = "UPDATE scripts s, user_script us "
+                ."SET s.name = ?, s.description = ?, s.ps_role_id = ?, "
+                ."s.content = ?, s.address = ?, s.protocol_id = ? "
+                ."WHERE s.id = ? AND s.id = us.script_id AND us.user_id = ?";
+        } else {
+            $sql = "UPDATE scripts s, user_script us "
+                ."SET s.name = ?, s.description = ?, s.ps_role_id = ?, "
+                ."s.content = ?, s.address = ?, s.protocol_id = ? "
+                ."WHERE s.id = ?"; // does not restrict to owner when admin
         }
-
-        $sql = "UPDATE scripts s, user_script us "
-            ."SET s.name = ?, s.description = ?, s.ps_role_id = ?, "
-            ."s.content = ?, s.address = ?, s.protocol_id = ? "
-            ."WHERE s.id = ? AND s.id = us.script_id AND us.user_id = ?";
-
 
         if ($stmt = $this->conn->prepare($sql)) {
             $name = $script->getName();
@@ -582,11 +601,16 @@ class DbHandler {
 //                .'s.content = '.$content.', s.address = '.$address.', s.protocol_id = '.$protocol_id.' '
 //                .'WHERE s.id = '.$script_id.' AND s.id = us.script_id AND us.user_id = '.$user_id;
             try {
-                if($stmt->bind_param("ssissiii", $name, $description, $ps_role_id, $content, $address, $protocol_id,
-                    $script_id, $user_id)) {
+                if($user_role_id != USER_ROLE_ADMIN) {
+                    $stmt->bind_param("ssissiii", $name, $description, $ps_role_id, $content, $address, $protocol_id,
+                        $script_id, $user_id);
                 } else {
-                    printf("Errormessage2: %s\n", $this->conn->error);
+                    $stmt->bind_param("ssissii", $name, $description, $ps_role_id, $content, $address, $protocol_id,
+                        $script_id);
                 }
+//                } else {
+//                    printf("Errormessage2: %s\n", $this->conn->error);
+//                }
 
             } catch (Exception $e) {
                 echo 'Caught exception: ',  $e->getMessage(), "\n";

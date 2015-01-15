@@ -74,6 +74,10 @@ class JSONRequestParser {
         $this->checkMandatoryAttribute(array_key_exists("protocol_id", $script), "script->protocol_id");
         $this->retScript->setProtocolId($script->protocol_id);
 
+        if(array_key_exists("description", $script)){
+            $this->retScript->setDescription($script->description);
+        }
+
     }
 
     private function checkContent($content) {
@@ -230,6 +234,10 @@ class JSONRequestParser {
             $sshArgs = array_key_exists("sshArgs", $protocol->sshAttr) ? $protocol->sshAttr->sshArgs : "";
             $this->checkArgs($sshArgs, "sshAttr->sshArgs");
             $this->retProtocol->setSshArgs($this->getArgsFromArray($sshArgs));
+        }
+
+        if(array_key_exists("description", $protocol)){
+            $this->retProtocol->setDesc($protocol->description);
         }
     }
 

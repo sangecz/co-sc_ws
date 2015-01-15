@@ -103,12 +103,14 @@ class MySSH {
 
         // get outputs
         $execStr = 'chmod +x '.MySSH::REMOTE_FILE.' && '.
-                   'nohup ./'.MySSH::REMOTE_FILE.' >out 2>/dev/null </dev/null ; '.
-                   'cat out 2>/dev/null && '.
-                   'rm -r out 2>/dev/null &&'.
-                   'rm -r '.MySSH::REMOTE_FILE.' 2>/dev/null';
+            'nohup ./'.MySSH::REMOTE_FILE.' >out 2>/dev/null </dev/null';
+        $cleanUp ='cat out 2>/dev/null && '.
+            'rm -r out 2>/dev/null &&'.
+            'rm -r '.MySSH::REMOTE_FILE.' 2>/dev/null';
         $scriptOutput = $this->ssh->exec($execStr);
         $exitCode= $this->ssh->getExitStatus();
+        $scriptOutput .= $this->ssh->exec($cleanUp);
+        //echo "XXX=" . $exitCode;
         $this->response->setCmd($scriptOutput, $exitCode);
 
         return $this->response;
